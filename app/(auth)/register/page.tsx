@@ -10,54 +10,38 @@ import {
   Divider,
 } from "@mui/material";
 import { motion } from "framer-motion";
-import { useForm } from "react-hook-form";
-import { useEffect, useState } from "react";
-import { loginRequest } from "@/services/authService";
-import { useUser } from "@/contexts/UserContext";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useRedirectIfAuth } from "@/hooks/useRedirectIfAuth";
-
-interface LoginForm {
-  email: string;
-  password: string;
-}
+import { registerRequest, isAuthenticated } from "@/services/authService";
 
 const PRIMARY = "#A3E635";
 const PRIMARY_DARK = "#365314";
 
-export default function LoginPage() {
-  const [mounted, setMounted] = useState(false);
-
-  useRedirectIfAuth();
-
-  const { login } = useUser();
+export default function RegisterPage() {
   const router = useRouter();
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<LoginForm>();
-
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    setMounted(true);
-  }, []);
+    if (isAuthenticated()) {
+      router.replace("/dashboard");
+    }
+  }, [router]);
 
-  if (!mounted) return null;
-
-  const onSubmit = async (values: LoginForm) => {
-    setLoading(true);
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     setError(null);
+    setLoading(true);
 
     try {
-      const data = await loginRequest(values.email, values.password);
-      login(data.token, data.user);
-      router.replace("/dashboard");
+      await registerRequest(name, email, password);
+      router.replace("/login");
     } catch (err: any) {
-      setError(err?.response?.data?.message || "Credenciales inválidas");
+      setError(err?.response?.data?.message || "Error al registrar usuario");
     } finally {
       setLoading(false);
     }
@@ -69,6 +53,7 @@ export default function LoginPage() {
       display="flex"
       justifyContent="center"
       alignItems="center"
+      px={2}
     >
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -76,7 +61,7 @@ export default function LoginPage() {
         transition={{ duration: 0.4 }}
       >
         <Paper
-          elevation={8}
+          elevation={6}
           sx={{
             p: 4,
             width: 400,
@@ -89,7 +74,7 @@ export default function LoginPage() {
             fontWeight={700}
             color={PRIMARY_DARK}
           >
-            Bienvenido
+            Crear cuenta
           </Typography>
 
           <Typography
@@ -98,17 +83,32 @@ export default function LoginPage() {
             color="text.secondary"
             mb={3}
           >
-            Accede a tu panel de control
+            Regístrate para comenzar
           </Typography>
 
-          <form onSubmit={handleSubmit(onSubmit)}>
+          <form onSubmit={handleSubmit}>
             <TextField
-              label="Email"
+              label="Nombre"
               fullWidth
               margin="normal"
-              {...register("email", { required: "Email requerido" })}
-              error={!!errors.email}
-              helperText={errors.email?.message}
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+              sx={{
+                "& .MuiOutlinedInput-root.Mui-focused fieldset": {
+                  borderColor: PRIMARY,
+                },
+              }}
+            />
+
+            <TextField
+              label="Email"
+              type="email"
+              fullWidth
+              margin="normal"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
               sx={{
                 "& .MuiOutlinedInput-root.Mui-focused fieldset": {
                   borderColor: PRIMARY,
@@ -121,11 +121,9 @@ export default function LoginPage() {
               type="password"
               fullWidth
               margin="normal"
-              {...register("password", {
-                required: "Contraseña requerida",
-              })}
-              error={!!errors.password}
-              helperText={errors.password?.message}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
               sx={{
                 "& .MuiOutlinedInput-root.Mui-focused fieldset": {
                   borderColor: PRIMARY,
@@ -157,7 +155,7 @@ export default function LoginPage() {
               {loading ? (
                 <CircularProgress size={24} sx={{ color: PRIMARY_DARK }} />
               ) : (
-                "Entrar"
+                "Crear cuenta"
               )}
             </Button>
           </form>
@@ -169,13 +167,13 @@ export default function LoginPage() {
             textAlign="center"
             color="text.secondary"
           >
-            ¿No tienes cuenta?
+            ¿Ya tienes cuenta?
           </Typography>
 
           <Button
             variant="outlined"
             fullWidth
-            onClick={() => router.push("/register")}
+            onClick={() => router.push("/login")}
             sx={{
               mt: 1.5,
               fontWeight: 600,
@@ -187,7 +185,7 @@ export default function LoginPage() {
               },
             }}
           >
-            Crear cuenta
+            Iniciar sesión
           </Button>
         </Paper>
       </motion.div>

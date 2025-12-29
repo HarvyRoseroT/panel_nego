@@ -2,15 +2,14 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useUser } from "@/contexts/UserContext";
+import { isAuthenticated } from "@/services/authService";
 
 export function useRedirectIfAuth() {
-  const { token } = useUser();
   const router = useRouter();
 
   useEffect(() => {
-    if (token) {
+    if (isAuthenticated()) {
       router.replace("/dashboard");
     }
-  }, [token, router]);
+  }, [router]);
 }
