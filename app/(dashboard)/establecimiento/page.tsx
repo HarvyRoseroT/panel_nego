@@ -34,32 +34,33 @@ export default function EstablecimientoPage() {
 
   if (loading) {
     return (
-      <div className="min-h-[60vh] flex items-center justify-center text-sm text-gray-500">
+      <div className="flex items-center justify-center py-24 text-sm text-gray-500">
         Cargando…
       </div>
     );
   }
 
   return (
-    <div className="min-h-[calc(100vh-64px)] flex justify-center">
-      <div className="w-full max-w-7xl px-4 lg:px-8 space-y-6">
-        <div className="text-center space-y-1">
-          <h1 className="text-2xl font-semibold">Establecimiento</h1>
-          <p className="text-sm text-gray-600">
-            Información principal de tu negocio
-          </p>
-        </div>
+    <div className="w-full max-w-7xl mx-auto px-4 lg:px-8 pt-8 space-y-8">
+      {/* Header de la página */}
+      <div className="text-center space-y-1">
+        <h1 className="text-2xl font-semibold">Establecimiento</h1>
+        <p className="text-sm text-gray-600">
+          Información principal de tu negocio
+        </p>
+      </div>
 
+      {/* Contenido */}
+      <div className="mx-auto w-full max-w-3xl">
         {!establecimiento || editing ? (
           <EstablecimientoForm
             initialData={establecimiento}
             onSaved={(data) => {
-                setEstablecimiento(data);
-                setEditing(false);
+              setEstablecimiento(data);
+              setEditing(false);
             }}
             onCancel={() => setEditing(false)}
-            />
-
+          />
         ) : (
           <EstablecimientoCard
             establecimiento={establecimiento}

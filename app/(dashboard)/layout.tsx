@@ -21,7 +21,7 @@ export default function DashboardLayout({
   }, [router]);
 
   return (
-    <div className="flex min-h-screen bg-gray-100">
+    <div className="flex h-screen bg-gray-100 overflow-hidden">
       {sidebarOpen && (
         <div
           className="fixed inset-0 bg-black/40 z-40 md:hidden"
@@ -31,9 +31,10 @@ export default function DashboardLayout({
 
       <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-      <div className="flex flex-col flex-1">
+      <div className="flex flex-col flex-1 ml-0 md:ml-64">
         <Header onToggleSidebar={() => setSidebarOpen(true)} />
-        <main className="p-6 max-w-7xl w-full mx-auto">
+
+        <main className="flex-1 overflow-y-auto pt-16 p-6 max-w-7xl w-full mx-auto">
           {children}
         </main>
       </div>

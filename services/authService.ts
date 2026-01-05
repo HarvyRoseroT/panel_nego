@@ -1,10 +1,26 @@
 import api from "@/services/api";
 
+export interface Plan {
+  id: number;
+  name: string;
+  price: number;
+}
+
+export interface Subscription {
+  id: number;
+  status: "trial" | "active" | "expired" | "canceled";
+  start_date: string;
+  trial_end_date?: string;
+  end_date?: string;
+  Plan?: Plan;
+}
+
 export interface AuthUser {
   id: number;
   name: string;
   email: string;
   role: string;
+  subscription?: Subscription | null;
 }
 
 interface LoginResponse {
