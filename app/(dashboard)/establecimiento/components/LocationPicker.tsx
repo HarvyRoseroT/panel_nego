@@ -1,7 +1,7 @@
 "use client";
 
 import { GoogleMap, Marker, useJsApiLoader } from "@react-google-maps/api";
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
 
 const containerStyle = {
   width: "100%",
@@ -15,7 +15,6 @@ const countryCenters: Record<string, { lat: number; lng: number }> = {
   Venezuela: { lat: 6.4238, lng: -66.5897 },
   Chile: { lat: -35.6751, lng: -71.543 },
 };
-
 
 export default function LocationPicker({
   value,
@@ -37,10 +36,12 @@ export default function LocationPicker({
     googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!,
   });
 
-  const center =
-    value.lat && value.lng
-      ? { lat: value.lat, lng: value.lng }
-      : countryCenters[pais] || { lat: 4.5709, lng: -74.2973 };
+  const center = useMemo(() => {
+    if (value.lat && value.lng) {
+      return { lat: value.lat, lng: value.lng };
+    }
+    return countryCenters[pais] || countryCenters.Colombia;
+  }, [value.lat, value.lng, pais]);
 
   const handleMarkerDrag = useCallback(
     async (lat: number, lng: number) => {
@@ -65,17 +66,25 @@ export default function LocationPicker({
         }
 
         onChange({ lat, lng, ciudad });
-      } catch (e) {
+      } catch {
         onChange({ lat, lng, ciudad: "" });
       }
     },
     [onChange]
   );
 
-  if (!isLoaded) return <div>Cargando mapa…</div>;
+  if (!isLoaded || !pais) return null;
 
   return (
-    <GoogleMap mapContainerStyle={containerStyle} center={center} zoom={6}>
+    <GoogleMap
+      mapContainerStyle={containerStyle}
+      center={center}
+      zoom={6}
+      options={{
+        disableDefaultUI: true,
+        zoomControl: true,
+      }}
+    >
       <Marker
         position={center}
         draggable

@@ -1,6 +1,14 @@
 import { Providers } from "./providers";
 import "./globals.css";
 
+export const metadata = {
+  title: {
+    default: "Nego",
+    template: "%s | Nego",
+  },
+  description: "Plataforma de gestión digital Negocios",
+};
+
 export default function RootLayout({
   children,
 }: {
