@@ -3,8 +3,8 @@ import api from "@/services/api";
 export interface Producto {
   id: number;
   nombre: string;
-  descripcion?: string;
-  precio: number;
+  descripcion?: string | null;
+  precio?: number | null;
   orden: number;
   activo: boolean;
   seccion_id: number;
@@ -61,12 +61,12 @@ export async function getProductoById(
 
 export async function updateProducto(
   id: number,
-  payload: Partial<
-    Pick<
-      Producto,
-      "nombre" | "descripcion" | "precio" | "activo" | "orden" | "seccion_id"
-    >
-  >,
+  payload: {
+    nombre?: string;
+    descripcion?: string;
+    precio?: number;
+    activo?: boolean;
+  },
   token: string
 ): Promise<Producto> {
   const { data } = await api.put(`/api/productos/${id}`, payload, {
@@ -92,12 +92,18 @@ export async function deleteProducto(
 export async function reordenarProductos(
   ordenes: { id: number; orden: number }[],
   token: string
-): Promise<void> {
-  await api.put("/api/productos/reordenar/orden", ordenes, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
+): Promise<{ message: string }> {
+  const { data } = await api.put(
+    "/api/productos/reordenar/orden",
+    ordenes,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+
+  return data;
 }
 
 export async function subirImagenProducto(
@@ -114,7 +120,6 @@ export async function subirImagenProducto(
     {
       headers: {
         Authorization: `Bearer ${token}`,
-        "Content-Type": "multipart/form-data",
       },
     }
   );

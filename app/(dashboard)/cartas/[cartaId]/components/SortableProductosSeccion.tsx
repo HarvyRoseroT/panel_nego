@@ -15,7 +15,7 @@ import {
   arrayMove,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { FiMove, FiEdit2, FiTrash2 } from "react-icons/fi";
+import { FiMove, FiEdit2, FiTrash2, FiImage } from "react-icons/fi";
 import type { Producto } from "@/services/productoService";
 import { reordenarProductos } from "@/services/productoService";
 import { getStoredToken } from "@/services/authService";
@@ -24,10 +24,12 @@ function SortableItem({
   producto,
   onEdit,
   onDelete,
+  onPreview,
 }: {
   producto: Producto;
   onEdit: (producto: Producto) => void;
   onDelete: (producto: Producto) => void;
+  onPreview: (producto: Producto) => void;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition } =
     useSortable({ id: producto.id });
@@ -41,7 +43,7 @@ function SortableItem({
     <div
       ref={setNodeRef}
       style={style}
-      className="flex items-center gap-4 px-5 py-3 rounded-xl bg-gray-50 hover:bg-gray-100 transition"
+      className="flex items-center gap-4 px-4 py-3 rounded-xl bg-gray-50 hover:bg-gray-100"
     >
       <button
         {...attributes}
@@ -51,24 +53,46 @@ function SortableItem({
         <FiMove />
       </button>
 
+      <div
+        onClick={() => onPreview(producto)}
+        className="w-12 h-12 rounded-lg overflow-hidden bg-gray-200 flex items-center justify-center cursor-pointer"
+      >
+        {producto.imagen_url ? (
+          <img
+            src={producto.imagen_url}
+            alt={producto.nombre}
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <FiImage className="text-gray-400" />
+        )}
+      </div>
+
       <p
         onClick={() => onEdit(producto)}
-        className="flex-1 text-sm font-medium text-gray-700 cursor-pointer"
+        className="flex-1 text-sm font-medium text-gray-700 cursor-pointer truncate"
       >
         {producto.nombre}
       </p>
 
       <div className="flex items-center gap-2">
         <button
+          onClick={() => onPreview(producto)}
+          className="p-1 rounded hover:bg-gray-200 text-gray-500"
+        >
+          <FiImage />
+        </button>
+
+        <button
           onClick={() => onEdit(producto)}
-          className="p-1 rounded hover:bg-gray-200 text-gray-500 hover:text-gray-700"
+          className="p-1 rounded hover:bg-gray-200 text-gray-500"
         >
           <FiEdit2 />
         </button>
 
         <button
           onClick={() => onDelete(producto)}
-          className="p-1 rounded hover:bg-red-100 text-red-500 hover:text-red-700"
+          className="p-1 rounded hover:bg-red-100 text-red-500"
         >
           <FiTrash2 />
         </button>
@@ -83,12 +107,14 @@ export default function SortableProductosSeccion({
   onChange,
   onEdit,
   onDelete,
+  onPreview,
 }: {
   seccionId: number;
   productos: Producto[];
   onChange: () => void;
   onEdit: (producto: Producto) => void;
   onDelete: (producto: Producto) => void;
+  onPreview: (producto: Producto) => void;
 }) {
   const sensors = useSensors(useSensor(PointerSensor));
 
@@ -117,12 +143,6 @@ export default function SortableProductosSeccion({
 
   return (
     <div className="px-6 pb-6 space-y-2">
-      {productos.length === 0 && (
-        <p className="text-xs text-gray-400">
-          Esta sección aún no tiene productos
-        </p>
-      )}
-
       <DndContext
         sensors={sensors}
         collisionDetection={closestCenter}
@@ -138,6 +158,7 @@ export default function SortableProductosSeccion({
               producto={producto}
               onEdit={onEdit}
               onDelete={onDelete}
+              onPreview={onPreview}
             />
           ))}
         </SortableContext>

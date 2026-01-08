@@ -25,6 +25,8 @@ import {
 } from "@/services/productoService";
 import SortableProductosSeccion from "./components/SortableProductosSeccion";
 import ModalCrearEditarProducto from "./components/ModalCrearEditarProducto";
+import ModalPreviewImagenProducto from "./components/ModalPreviewImagenProducto";
+import ModalImagenProducto from "./components/ModalImagenProducto";
 
 export default function SeccionesCartaPage() {
   const router = useRouter();
@@ -36,6 +38,7 @@ export default function SeccionesCartaPage() {
     Record<number, Producto[]>
   >({});
   const [loading, setLoading] = useState(true);
+
   const [openModal, setOpenModal] = useState(false);
   const [openOrdenarModal, setOpenOrdenarModal] = useState(false);
   const [seccionParaEditar, setSeccionParaEditar] =
@@ -45,6 +48,10 @@ export default function SeccionesCartaPage() {
   const [seccionActiva, setSeccionActiva] = useState<Seccion | null>(null);
   const [productoParaEditar, setProductoParaEditar] =
     useState<Producto | null>(null);
+
+  const [productoPreview, setProductoPreview] = useState<Producto | null>(null);
+  const [openPreview, setOpenPreview] = useState(false);
+  const [openUpload, setOpenUpload] = useState(false);
 
   const fetchProductos = async (seccionId: number) => {
     const token = getStoredToken();
@@ -132,10 +139,7 @@ export default function SeccionesCartaPage() {
 
       <div className="space-y-6">
         {secciones.map((seccion) => (
-          <div
-            key={seccion.id}
-            className="rounded-2xl bg-white shadow-sm"
-          >
+          <div key={seccion.id} className="rounded-2xl bg-white shadow-sm">
             <div className="flex items-center justify-between px-6 py-4">
               <div>
                 <p className="text-lg font-semibold text-gray-800">
@@ -169,7 +173,6 @@ export default function SeccionesCartaPage() {
                   <FiPlus />
                   Añadir producto
                 </button>
-
 
                 <button
                   onClick={async () => {
@@ -207,8 +210,11 @@ export default function SeccionesCartaPage() {
                 await deleteProducto(producto.id, token);
                 fetchProductos(seccion.id);
               }}
+              onPreview={(producto) => {
+                setProductoPreview(producto);
+                setOpenPreview(true);
+              }}
             />
-
           </div>
         ))}
       </div>
@@ -242,6 +248,26 @@ export default function SeccionesCartaPage() {
         }}
         onSuccess={() => {
           if (seccionActiva) fetchProductos(seccionActiva.id);
+        }}
+      />
+
+      <ModalPreviewImagenProducto
+        open={openPreview}
+        producto={productoPreview}
+        onClose={() => setOpenPreview(false)}
+        onChangeImage={() => {
+          setOpenPreview(false);
+          setTimeout(() => setOpenUpload(true), 50);
+        }}
+      />
+
+      <ModalImagenProducto
+        open={openUpload}
+        producto={productoPreview}
+        onClose={() => setOpenUpload(false)}
+        onSuccess={() => {
+          if (productoPreview)
+            fetchProductos(productoPreview.seccion_id);
         }}
       />
     </div>
