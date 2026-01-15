@@ -65,7 +65,14 @@ export default function EstablecimientoPage() {
           <EstablecimientoCard
             establecimiento={establecimiento}
             onEdit={() => setEditing(true)}
+            onUpdated={(data) =>
+              setEstablecimiento((prev: any) => ({
+                ...prev,
+                ...data,
+              }))
+            }
           />
+
         )}
       </div>
     </div>

@@ -1,9 +1,9 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import {
   FiHome,
   FiBookOpen,
-  FiBox,
   FiEye,
 } from "react-icons/fi";
 import {
@@ -17,57 +17,145 @@ import {
   Bar,
 } from "recharts";
 
-const visitsData = [
-  { day: "Lun", visits: 80 },
-  { day: "Mar", visits: 120 },
-  { day: "Mié", visits: 150 },
-  { day: "Jue", visits: 90 },
-  { day: "Vie", visits: 200 },
-  { day: "Sáb", visits: 260 },
-  { day: "Dom", visits: 180 },
-];
+import {
+  getAnalyticsResumen,
+  getVisitasPorDia,
+  getCartasTop,
+  AnalyticsResumen,
+  VisitasPorDia,
+  CartaTop,
+} from "@/services/analyticsService";
 
-const productsData = [
-  { name: "Carta", value: 2 },
-  { name: "Productos", value: 18 },
-  { name: "Categorías", value: 5 },
-];
+import { getMyEstablecimiento } from "@/services/establecimientoService";
+import { getCartasByEstablecimiento } from "@/services/cartaService";
+import { getStoredToken } from "@/services/authService";
 
 export default function DashboardPage() {
+  const [establecimiento, setEstablecimiento] = useState<any>(null);
+  const [resumen, setResumen] = useState<AnalyticsResumen | null>(null);
+  const [visitas, setVisitas] = useState<VisitasPorDia[]>([]);
+  const [cartasTop, setCartasTop] = useState<CartaTop[]>([]);
+  const [cartasActivas, setCartasActivas] = useState<number>(0);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadData = async () => {
+      const token = getStoredToken();
+      if (!token) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const est = await getMyEstablecimiento(token);
+        setEstablecimiento(est);
+
+        const [
+          resumenData,
+          visitasData,
+          cartasTopData,
+          cartasData,
+        ] = await Promise.all([
+          getAnalyticsResumen(est.id),
+          getVisitasPorDia(est.id),
+          getCartasTop(est.id),
+          getCartasByEstablecimiento(est.id, token),
+        ]);
+
+        setResumen(resumenData);
+
+        setVisitas(
+          visitasData.map(v => ({
+            fecha: v.fecha,
+            total: Number(v.total),
+          }))
+        );
+
+        setCartasTop(
+          cartasTopData.map(c => ({
+            ...c,
+            vistas: Number(c.vistas),
+          }))
+        );
+
+        setCartasActivas(
+          cartasData.filter(c => c.activa === true).length
+        );
+      } catch (error) {
+        console.error("Dashboard analytics error:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="pt-24 text-center text-sm text-gray-500">
+        Cargando estadísticas…
+      </div>
+    );
+  }
+
+  if (!establecimiento) {
+    return (
+      <div className="pt-24 text-center text-sm text-gray-500">
+        No se encontró un establecimiento
+      </div>
+    );
+  }
+
   return (
     <div className="pt-24 space-y-12">
       <div>
         <h1 className="text-3xl font-semibold text-gray-800">
-          Bienvenido a Nego
+          Estadísticas de {establecimiento.nombre}
         </h1>
         <p className="text-gray-500 mt-1">
           Resumen general de tu negocio
         </p>
       </div>
 
-      {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatCard title="Establecimientos" value="1" icon={FiHome} />
-        <StatCard title="Cartas activas" value="2" icon={FiBookOpen} />
-        <StatCard title="Productos" value="18" icon={FiBox} />
-        <StatCard title="Vistas hoy" value="124" icon={FiEye} highlight />
+        <StatCard
+          title="Visitas totales"
+          value={resumen?.visitas ?? 0}
+          icon={FiEye}
+          highlight
+        />
+        <StatCard
+          title="Visitas únicas"
+          value={resumen?.visitasUnicas ?? 0}
+          icon={FiHome}
+        />
+        <StatCard
+          title="Visitas a cartas"
+          value={resumen?.visitasCartas ?? 0}
+          icon={FiEye}
+        />
+        <StatCard
+          title="Cartas activas"
+          value={cartasActivas}
+          icon={FiBookOpen}
+        />
       </div>
 
-      {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 bg-white rounded-xl shadow-sm p-6">
           <h2 className="text-lg font-semibold text-gray-800 mb-4">
-            Visitas de la semana
+            Visitas por día
           </h2>
           <div className="h-72">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={visitsData}>
-                <XAxis dataKey="day" />
+              <LineChart data={visitas}>
+                <XAxis dataKey="fecha" />
                 <YAxis />
                 <Tooltip />
                 <Line
                   type="monotone"
-                  dataKey="visits"
+                  dataKey="total"
                   stroke="#3fa10a"
                   strokeWidth={3}
                 />
@@ -78,38 +166,19 @@ export default function DashboardPage() {
 
         <div className="bg-white rounded-xl shadow-sm p-6">
           <h2 className="text-lg font-semibold text-gray-800 mb-4">
-            Contenido creado
+            Cartas más vistas
           </h2>
           <div className="h-72">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={productsData}>
-                <XAxis dataKey="name" />
+              <BarChart data={cartasTop}>
+                <XAxis dataKey="carta_id" />
                 <YAxis />
                 <Tooltip />
-                <Bar dataKey="value" fill="#72eb15" />
+                <Bar dataKey="vistas" fill="#72eb15" />
               </BarChart>
             </ResponsiveContainer>
           </div>
         </div>
-      </div>
-
-      {/* Actions */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <ActionCard
-          title="Establecimiento"
-          description="Configura los datos de tu negocio"
-          icon={FiHome}
-        />
-        <ActionCard
-          title="Carta"
-          description="Crea y gestiona tu menú digital"
-          icon={FiBookOpen}
-        />
-        <ActionCard
-          title="Productos"
-          description="Añade productos, precios y extras"
-          icon={FiBox}
-        />
       </div>
     </div>
   );
@@ -122,7 +191,7 @@ function StatCard({
   highlight = false,
 }: {
   title: string;
-  value: string;
+  value: number | string;
   icon: any;
   highlight?: boolean;
 }) {
@@ -141,30 +210,6 @@ function StatCard({
       <div className="w-11 h-11 rounded-lg bg-[#72eb15]/20 flex items-center justify-center">
         <Icon className="text-[#3fa10a] text-xl" />
       </div>
-    </div>
-  );
-}
-
-function ActionCard({
-  title,
-  description,
-  icon: Icon,
-}: {
-  title: string;
-  description: string;
-  icon: any;
-}) {
-  return (
-    <div className="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition-shadow cursor-pointer">
-      <div className="w-12 h-12 rounded-lg bg-[#72eb15]/20 flex items-center justify-center mb-4">
-        <Icon className="text-[#3fa10a] text-2xl" />
-      </div>
-      <h2 className="text-lg font-semibold text-gray-800">
-        {title}
-      </h2>
-      <p className="text-sm text-gray-600 mt-1">
-        {description}
-      </p>
     </div>
   );
 }

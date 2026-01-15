@@ -18,6 +18,7 @@ interface Establecimiento {
 interface Props {
   establecimiento: Establecimiento;
   onEdit: () => void;
+  onUpdated: (data: Partial<Establecimiento>) => void;
 }
 
 const normalizeUrl = (url?: string | null) => {
@@ -29,6 +30,7 @@ const normalizeUrl = (url?: string | null) => {
 export default function EstablecimientoCard({
   establecimiento,
   onEdit,
+  onUpdated,
 }: Props) {
   const [openMedia, setOpenMedia] = useState(false);
 
@@ -120,7 +122,10 @@ export default function EstablecimientoCard({
       {openMedia && (
         <ModalMultimediaEstablecimiento
           establecimientoId={establecimiento.id}
+          logoUrl={establecimiento.logo_url}
+          imagenUbicacionUrl={establecimiento.imagen_ubicacion_url}
           onClose={() => setOpenMedia(false)}
+          onSaved={(data) => onUpdated(data)}
         />
       )}
     </>

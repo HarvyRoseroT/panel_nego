@@ -9,21 +9,30 @@ import { getStoredToken } from "@/services/authService";
 
 export default function ModalMultimediaEstablecimiento({
   establecimientoId,
+  logoUrl,
+  imagenUbicacionUrl,
   onClose,
+  onSaved,
 }: {
   establecimientoId: number;
+  logoUrl?: string | null;
+  imagenUbicacionUrl?: string | null;
   onClose: () => void;
+  onSaved: (data: {
+    logo_url?: string | null;
+    imagen_ubicacion_url?: string | null;
+  }) => void;
 }) {
   const [logoFile, setLogoFile] = useState<File | null>(null);
-  const [logoPreview, setLogoPreview] = useState<string | null>(null);
-  const [logoUploaded, setLogoUploaded] = useState(false);
-
+  const [logoPreview, setLogoPreview] = useState<string | null>(logoUrl ?? null);
   const [coverFile, setCoverFile] = useState<File | null>(null);
-  const [coverPreview, setCoverPreview] = useState<string | null>(null);
-  const [coverUploaded, setCoverUploaded] = useState(false);
-
+  const [coverPreview, setCoverPreview] = useState<string | null>(
+    imagenUbicacionUrl ?? null
+  );
   const [loadingLogo, setLoadingLogo] = useState(false);
   const [loadingCover, setLoadingCover] = useState(false);
+  const [logoSaved, setLogoSaved] = useState(false);
+  const [coverSaved, setCoverSaved] = useState(false);
 
   const uploadLogo = async () => {
     if (!logoFile) return;
@@ -32,9 +41,17 @@ export default function ModalMultimediaEstablecimiento({
 
     setLoadingLogo(true);
     try {
-      await subirLogoEstablecimiento(establecimientoId, logoFile, token);
-      setLogoUploaded(true);
+      const res = await subirLogoEstablecimiento(
+        establecimientoId,
+        logoFile,
+        token
+      );
+      const url = `${res.logo_url}?v=${Date.now()}`;
+      setLogoPreview(url);
       setLogoFile(null);
+      setLogoSaved(true);
+      onSaved({ logo_url: res.logo_url });
+      setTimeout(() => setLogoSaved(false), 2500);
     } finally {
       setLoadingLogo(false);
     }
@@ -47,13 +64,17 @@ export default function ModalMultimediaEstablecimiento({
 
     setLoadingCover(true);
     try {
-      await subirImagenUbicacionEstablecimiento(
+      const res = await subirImagenUbicacionEstablecimiento(
         establecimientoId,
         coverFile,
         token
       );
-      setCoverUploaded(true);
+      const url = `${res.imagen_ubicacion_url}?v=${Date.now()}`;
+      setCoverPreview(url);
       setCoverFile(null);
+      setCoverSaved(true);
+      onSaved({ imagen_ubicacion_url: res.imagen_ubicacion_url });
+      setTimeout(() => setCoverSaved(false), 2500);
     } finally {
       setLoadingCover(false);
     }
@@ -70,98 +91,88 @@ export default function ModalMultimediaEstablecimiento({
 
         <div className="px-6 py-8 space-y-12">
           <div className="flex flex-col items-center gap-5">
-            <div className="w-28 h-28 rounded-full bg-[#72eb15]/20 flex items-center justify-center overflow-hidden">
+            <div className="w-28 h-28 rounded-full bg-[#72eb15]/20 overflow-hidden">
               {logoPreview ? (
-                <img
-                  src={logoPreview}
-                  className="w-full h-full object-cover"
-                />
+                <img src={logoPreview} className="w-full h-full object-cover" />
               ) : (
-                <span className="text-sm font-medium text-[#4fb30f]">
+                <span className="flex h-full items-center justify-center text-sm font-medium text-[#4fb30f]">
                   Logo
                 </span>
               )}
             </div>
 
-            {!logoUploaded && (
-              <div className="flex items-center gap-3">
-                <label className="px-5 py-2 rounded-full border border-[#72eb15] text-[#4fb30f] font-semibold cursor-pointer hover:bg-[#72eb15]/10 transition">
-                  Seleccionar archivo
-                  <input
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (!file) return;
-                      setLogoFile(file);
-                      setLogoPreview(URL.createObjectURL(file));
-                    }}
-                  />
-                </label>
+            <div className="flex items-center gap-3">
+              <label className="px-5 py-2 rounded-full border border-[#72eb15] text-[#4fb30f] font-semibold cursor-pointer">
+                Cambiar logo
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    setLogoFile(file);
+                    setLogoPreview(URL.createObjectURL(file));
+                  }}
+                />
+              </label>
 
-                <button
-                  onClick={uploadLogo}
-                  disabled={!logoFile || loadingLogo}
-                  className="px-6 py-2 rounded-full bg-[#72eb15] text-black font-semibold disabled:opacity-50 hover:bg-[#64d413] transition"
-                >
-                  {loadingLogo ? "Subiendo..." : "Subir logo"}
-                </button>
-              </div>
-            )}
+              <button
+                onClick={uploadLogo}
+                disabled={!logoFile || loadingLogo}
+                className="px-6 py-2 rounded-full bg-[#72eb15] text-black font-semibold disabled:opacity-50"
+              >
+                {loadingLogo ? "Subiendo..." : "Guardar"}
+              </button>
+            </div>
 
-            {logoUploaded && (
+            {logoSaved && (
               <span className="text-xs font-semibold text-[#4fb30f] bg-[#72eb15]/20 px-4 py-1.5 rounded-full">
-                Logo subido
+                Logo subido correctamente
               </span>
             )}
           </div>
 
           <div className="space-y-5">
-            <div className="w-full h-44 rounded-2xl bg-gray-100 overflow-hidden flex items-center justify-center">
+            <div className="w-full h-44 rounded-2xl bg-gray-100 overflow-hidden">
               {coverPreview ? (
-                <img
-                  src={coverPreview}
-                  className="w-full h-full object-cover"
-                />
+                <img src={coverPreview} className="w-full h-full object-cover" />
               ) : (
-                <span className="text-sm text-gray-400">
+                <span className="flex h-full items-center justify-center text-sm text-gray-400">
                   Imagen de portada
                 </span>
               )}
             </div>
 
-            {!coverUploaded && (
-              <div className="flex justify-center gap-3">
-                <label className="px-5 py-2 rounded-full border border-[#72eb15] text-[#4fb30f] font-semibold cursor-pointer hover:bg-[#72eb15]/10 transition">
-                  Seleccionar archivo
-                  <input
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (!file) return;
-                      setCoverFile(file);
-                      setCoverPreview(URL.createObjectURL(file));
-                    }}
-                  />
-                </label>
+            <div className="flex justify-center gap-3">
+              <label className="px-5 py-2 rounded-full border border-[#72eb15] text-[#4fb30f] font-semibold cursor-pointer">
+                Cambiar imagen
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    setCoverFile(file);
+                    setCoverPreview(URL.createObjectURL(file));
+                  }}
+                />
+              </label>
 
-                <button
-                  onClick={uploadCover}
-                  disabled={!coverFile || loadingCover}
-                  className="px-6 py-2 rounded-full bg-[#72eb15] text-black font-semibold disabled:opacity-50 hover:bg-[#64d413] transition"
-                >
-                  {loadingCover ? "Subiendo..." : "Subir imagen"}
-                </button>
-              </div>
-            )}
+              <button
+                onClick={uploadCover}
+                disabled={!coverFile || loadingCover}
+                className="px-6 py-2 rounded-full bg-[#72eb15] text-black font-semibold disabled:opacity-50"
+              >
+                {loadingCover ? "Subiendo..." : "Guardar"}
+              </button>
+            </div>
 
-            {coverUploaded && (
+            {coverSaved && (
               <div className="flex justify-center">
                 <span className="text-xs font-semibold text-[#4fb30f] bg-[#72eb15]/20 px-4 py-1.5 rounded-full">
-                  Imagen subida
+                  Imagen subida correctamente
                 </span>
               </div>
             )}
@@ -171,7 +182,7 @@ export default function ModalMultimediaEstablecimiento({
         <div className="px-6 py-5 flex justify-center">
           <button
             onClick={onClose}
-            className="px-8 py-2 rounded-full bg-gray-100 text-gray-700 font-medium hover:bg-gray-200 transition"
+            className="px-8 py-2 rounded-full bg-gray-100 text-gray-700 font-medium"
           >
             Cerrar
           </button>

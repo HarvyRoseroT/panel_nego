@@ -131,10 +131,6 @@ export async function borrarLogoEstablecimiento(
   return data;
 }
 
-/* =========================
-   IMAGEN DE UBICACIÓN
-========================= */
-
 export async function subirImagenUbicacionEstablecimiento(
   id: number,
   file: File,

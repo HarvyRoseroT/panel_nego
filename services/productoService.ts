@@ -46,6 +46,23 @@ export async function getProductosBySeccion(
   return data;
 }
 
+export async function getProductosByEstablecimiento(
+  establecimientoId: number,
+  token: string
+): Promise<Producto[]> {
+  const { data } = await api.get(
+    `/api/productos/establecimiento/${establecimientoId}`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+
+  return data;
+}
+
+
 export async function getProductoById(
   id: number,
   token: string
