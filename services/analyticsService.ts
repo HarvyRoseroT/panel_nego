@@ -4,6 +4,14 @@ export interface AnalyticsResumen {
   visitas: number;
   visitasUnicas: number;
   visitasCartas: number;
+  visitasHoy: number;
+  visitasSemana: number;
+  visitasMes: number;
+  visitasUltimos7Dias: number;
+  visitasUltimos30Dias: number;
+  tasaInteraccionCartas: number;
+  promedioVisitasPorUsuario: number;
+  ultimaVisita: string | null;
 }
 
 export interface VisitasPorDia {

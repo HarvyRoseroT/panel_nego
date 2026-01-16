@@ -1,8 +1,5 @@
 import api from "@/services/api";
 
-/**
- * Representa el recurso completo tal como lo devuelve la API
- */
 export interface Establecimiento {
   id: number;
   nombre: string;
@@ -10,34 +7,30 @@ export interface Establecimiento {
   pais: string;
   ciudad: string;
   direccion: string;
+  telefono_contacto: string | null;
   lat: number | null;
   lng: number | null;
   logo_url: string | null;
   imagen_ubicacion_url: string | null;
   activo: boolean;
+  domicilio_activo: boolean;
   user_id: number;
   createdAt: string;
   updatedAt: string;
 }
 
-/**
- * Payload válido para crear / actualizar un establecimiento
- * (NO incluye imágenes ni campos gestionados por backend)
- */
 export type EstablecimientoPayload = {
   nombre: string;
   descripcion: string | null;
   pais: string;
   ciudad: string;
   direccion: string;
+  telefono_contacto: string | null;
   lat: number | null;
   lng: number | null;
   activo: boolean;
+  domicilio_activo: boolean;
 };
-
-/* =========================
-   CRUD BÁSICO
-========================= */
 
 export async function createEstablecimiento(
   payload: EstablecimientoPayload,
@@ -88,10 +81,6 @@ export async function deleteEstablecimiento(
     },
   });
 }
-
-/* =========================
-   LOGO
-========================= */
 
 export async function subirLogoEstablecimiento(
   id: number,

@@ -34,7 +34,7 @@ export default function DashboardPage() {
   const [establecimiento, setEstablecimiento] = useState<any>(null);
   const [resumen, setResumen] = useState<AnalyticsResumen | null>(null);
   const [visitas, setVisitas] = useState<VisitasPorDia[]>([]);
-  const [cartasTop, setCartasTop] = useState<CartaTop[]>([]);
+  const [cartasTop, setCartasTop] = useState<(CartaTop & { nombre: string })[]>([]);
   const [cartasActivas, setCartasActivas] = useState<number>(0);
   const [loading, setLoading] = useState(true);
 
@@ -62,6 +62,10 @@ export default function DashboardPage() {
           getCartasByEstablecimiento(est.id, token),
         ]);
 
+        const cartasMap = new Map(
+          cartasData.map((c: any) => [c.id, c.nombre])
+        );
+
         setResumen(resumenData);
 
         setVisitas(
@@ -75,11 +79,12 @@ export default function DashboardPage() {
           cartasTopData.map(c => ({
             ...c,
             vistas: Number(c.vistas),
+            nombre: cartasMap.get(c.carta_id) || `Carta ${c.carta_id}`,
           }))
         );
 
         setCartasActivas(
-          cartasData.filter(c => c.activa === true).length
+          cartasData.filter((c: any) => c.activa === true).length
         );
       } catch (error) {
         console.error("Dashboard analytics error:", error);
@@ -108,7 +113,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="pt-24 space-y-12">
+    <div className="pt-24 space-y-16">
       <div>
         <h1 className="text-3xl font-semibold text-gray-800">
           Estadísticas de {establecimiento.nombre}
@@ -142,6 +147,24 @@ export default function DashboardPage() {
         />
       </div>
 
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+        <StatCard
+          title="Visitas hoy"
+          value={resumen?.visitasHoy ?? 0}
+          icon={FiEye}
+        />
+        <StatCard
+          title="Visitas esta semana"
+          value={resumen?.visitasSemana ?? 0}
+          icon={FiEye}
+        />
+        <StatCard
+          title="Visitas este mes"
+          value={resumen?.visitasMes ?? 0}
+          icon={FiEye}
+        />
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 bg-white rounded-xl shadow-sm p-6">
           <h2 className="text-lg font-semibold text-gray-800 mb-4">
@@ -171,7 +194,7 @@ export default function DashboardPage() {
           <div className="h-72">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={cartasTop}>
-                <XAxis dataKey="carta_id" />
+                <XAxis dataKey="nombre" />
                 <YAxis />
                 <Tooltip />
                 <Bar dataKey="vistas" fill="#72eb15" />

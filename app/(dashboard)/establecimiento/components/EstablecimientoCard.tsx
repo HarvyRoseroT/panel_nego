@@ -10,6 +10,7 @@ interface Establecimiento {
   pais: string;
   ciudad: string;
   direccion: string;
+  telefono_contacto?: string | null;
   logo_url?: string | null;
   imagen_ubicacion_url?: string | null;
   activo: boolean;
@@ -89,7 +90,7 @@ export default function EstablecimientoCard({
                 </p>
               )}
 
-              <div className="text-sm text-gray-700 pt-1">
+              <div className="text-sm text-gray-700 pt-1 space-y-1">
                 <p>
                   <span className="font-medium">Dirección:</span>{" "}
                   {establecimiento.direccion}
@@ -97,6 +98,12 @@ export default function EstablecimientoCard({
                 <p>
                   {establecimiento.ciudad}, {establecimiento.pais}
                 </p>
+                {establecimiento.telefono_contacto && (
+                  <p>
+                    <span className="font-medium">Contacto:</span>{" "}
+                    {establecimiento.telefono_contacto}
+                  </p>
+                )}
               </div>
             </div>
           </div>
