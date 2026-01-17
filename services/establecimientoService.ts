@@ -47,15 +47,24 @@ export async function createEstablecimiento(
 
 export async function getMyEstablecimiento(
   token: string
-): Promise<Establecimiento> {
-  const { data } = await api.get("/establecimientos", {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
+): Promise<Establecimiento | null> {
+  try {
+    const { data } = await api.get("/establecimientos", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
 
-  return data;
+    return data;
+  } catch (error: any) {
+    if (error?.response?.status === 404) {
+      return null;
+    }
+
+    throw error;
+  }
 }
+
 
 export async function updateEstablecimiento(
   id: number,

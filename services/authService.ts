@@ -28,6 +28,14 @@ interface LoginResponse {
   user: AuthUser;
 }
 
+interface RegisterResponse {
+  message: string;
+}
+
+interface VerifyEmailResponse {
+  message: string;
+}
+
 export async function loginRequest(
   email: string,
   password: string
@@ -47,11 +55,21 @@ export async function registerRequest(
   name: string,
   email: string,
   password: string
-) {
+): Promise<RegisterResponse> {
   const { data } = await api.post("/auth/register", {
     name,
     email,
     password,
+  });
+
+  return data;
+}
+
+export async function verifyEmailRequest(
+  token: string
+): Promise<VerifyEmailResponse> {
+  const { data } = await api.get("/auth/verify-email", {
+    params: { token },
   });
 
   return data;
@@ -64,7 +82,6 @@ export function logout() {
 
 export function getStoredUser(): AuthUser | null {
   if (typeof window === "undefined") return null;
-
   const user = localStorage.getItem("user");
   return user ? JSON.parse(user) : null;
 }

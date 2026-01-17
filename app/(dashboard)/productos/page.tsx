@@ -61,13 +61,58 @@ export default function ProductosPage() {
     );
   }
 
-  if (error) {
+  if (error === "Establecimiento no encontrado") {
     return (
-      <div className="flex items-center justify-center py-32 text-sm text-red-500">
-        {error}
+      <div className="flex items-center justify-center min-h-[70vh] px-6">
+        <div className="w-full max-w-md text-center bg-white border border-dashed rounded-2xl p-8">
+          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-xl bg-[#72eb15]/15">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-7 w-7 text-[#3fa10a]"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M3 7l9-4 9 4-9 4-9-4z"
+              />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M3 17l9 4 9-4"
+              />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M3 12l9 4 9-4"
+              />
+            </svg>
+          </div>
+
+          <h2 className="text-lg font-semibold text-gray-800">
+            Aún no tienes un establecimiento
+          </h2>
+
+          <p className="mt-2 text-sm text-gray-500">
+            Para gestionar productos, primero debes crear tu establecimiento.
+          </p>
+
+          <button
+            onClick={() => (window.location.href = "/establecimiento")}
+            className="mt-6 inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#72eb15]/15 text-[#3fa10a] font-semibold hover:bg-[#72eb15]/25 transition"
+          >
+            Crear establecimiento
+          </button>
+        </div>
       </div>
     );
   }
+
 
   return (
     <div className="w-full max-w-7xl mx-auto px-4 lg:px-8 pt-10 space-y-6">

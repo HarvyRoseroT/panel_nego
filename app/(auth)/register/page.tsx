@@ -25,6 +25,7 @@ export default function RegisterPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
 
   useEffect(() => {
     if (isAuthenticated()) {
@@ -35,11 +36,12 @@ export default function RegisterPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setSuccess(null);
     setLoading(true);
 
     try {
-      await registerRequest(name, email, password);
-      router.replace("/login");
+      const res = await registerRequest(name, email, password);
+      setSuccess(res.message || "Revisa tu correo para verificar tu cuenta");
     } catch (err: any) {
       setError(err?.response?.data?.message || "Error al registrar usuario");
     } finally {
@@ -86,79 +88,108 @@ export default function RegisterPage() {
             Regístrate para comenzar
           </Typography>
 
-          <form onSubmit={handleSubmit}>
-            <TextField
-              label="Nombre"
-              fullWidth
-              margin="normal"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-              sx={{
-                "& .MuiOutlinedInput-root.Mui-focused fieldset": {
-                  borderColor: PRIMARY,
-                },
-              }}
-            />
-
-            <TextField
-              label="Email"
-              type="email"
-              fullWidth
-              margin="normal"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              sx={{
-                "& .MuiOutlinedInput-root.Mui-focused fieldset": {
-                  borderColor: PRIMARY,
-                },
-              }}
-            />
-
-            <TextField
-              label="Contraseña"
-              type="password"
-              fullWidth
-              margin="normal"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              sx={{
-                "& .MuiOutlinedInput-root.Mui-focused fieldset": {
-                  borderColor: PRIMARY,
-                },
-              }}
-            />
-
-            {error && (
-              <Typography color="error" mt={1} fontSize={14}>
-                {error}
+          {success ? (
+            <>
+              <Typography
+                color={PRIMARY_DARK}
+                textAlign="center"
+                fontWeight={600}
+              >
+                {success}
               </Typography>
-            )}
 
-            <Button
-              type="submit"
-              fullWidth
-              disabled={loading}
-              sx={{
-                mt: 3,
-                py: 1.2,
-                fontWeight: 600,
-                backgroundColor: PRIMARY,
-                color: PRIMARY_DARK,
-                "&:hover": {
-                  backgroundColor: "#84cc16",
-                },
-              }}
-            >
-              {loading ? (
-                <CircularProgress size={24} sx={{ color: PRIMARY_DARK }} />
-              ) : (
-                "Crear cuenta"
+              <Button
+                fullWidth
+                sx={{
+                  mt: 3,
+                  py: 1.2,
+                  fontWeight: 600,
+                  backgroundColor: PRIMARY,
+                  color: PRIMARY_DARK,
+                  "&:hover": {
+                    backgroundColor: "#84cc16",
+                  },
+                }}
+                onClick={() => router.push("/login")}
+              >
+                Ir a iniciar sesión
+              </Button>
+            </>
+          ) : (
+            <form onSubmit={handleSubmit}>
+              <TextField
+                label="Nombre"
+                fullWidth
+                margin="normal"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+                sx={{
+                  "& .MuiOutlinedInput-root.Mui-focused fieldset": {
+                    borderColor: PRIMARY,
+                  },
+                }}
+              />
+
+              <TextField
+                label="Email"
+                type="email"
+                fullWidth
+                margin="normal"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                sx={{
+                  "& .MuiOutlinedInput-root.Mui-focused fieldset": {
+                    borderColor: PRIMARY,
+                  },
+                }}
+              />
+
+              <TextField
+                label="Contraseña"
+                type="password"
+                fullWidth
+                margin="normal"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                sx={{
+                  "& .MuiOutlinedInput-root.Mui-focused fieldset": {
+                    borderColor: PRIMARY,
+                  },
+                }}
+              />
+
+              {error && (
+                <Typography color="error" mt={1} fontSize={14}>
+                  {error}
+                </Typography>
               )}
-            </Button>
-          </form>
+
+              <Button
+                type="submit"
+                fullWidth
+                disabled={loading}
+                sx={{
+                  mt: 3,
+                  py: 1.2,
+                  fontWeight: 600,
+                  backgroundColor: PRIMARY,
+                  color: PRIMARY_DARK,
+                  "&:hover": {
+                    backgroundColor: "#84cc16",
+                  },
+                }}
+              >
+                {loading ? (
+                  <CircularProgress size={24} sx={{ color: PRIMARY_DARK }} />
+                ) : (
+                  "Crear cuenta"
+                )}
+              </Button>
+            </form>
+          )}
 
           <Divider sx={{ my: 3 }} />
 

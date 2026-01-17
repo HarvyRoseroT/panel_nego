@@ -41,6 +41,7 @@ export default function LoginPage() {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [notVerified, setNotVerified] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -51,13 +52,19 @@ export default function LoginPage() {
   const onSubmit = async (values: LoginForm) => {
     setLoading(true);
     setError(null);
+    setNotVerified(false);
 
     try {
       const data = await loginRequest(values.email, values.password);
       login(data.token, data.user);
       router.replace("/dashboard");
     } catch (err: any) {
-      setError(err?.response?.data?.message || "Credenciales inválidas");
+      const message = err?.response?.data?.message;
+      if (message === "Please verify your email before logging in") {
+        setNotVerified(true);
+      } else {
+        setError(message || "Credenciales inválidas");
+      }
     } finally {
       setLoading(false);
     }
@@ -100,6 +107,17 @@ export default function LoginPage() {
           >
             Accede a tu panel de control
           </Typography>
+
+          {notVerified && (
+            <Typography
+              color={PRIMARY_DARK}
+              textAlign="center"
+              fontWeight={600}
+              mb={2}
+            >
+              Debes verificar tu correo antes de iniciar sesión
+            </Typography>
+          )}
 
           <form onSubmit={handleSubmit(onSubmit)}>
             <TextField

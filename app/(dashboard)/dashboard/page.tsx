@@ -1,11 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import {
-  FiHome,
-  FiBookOpen,
-  FiEye,
-} from "react-icons/fi";
+import { FiHome, FiBookOpen, FiEye } from "react-icons/fi";
 import {
   ResponsiveContainer,
   LineChart,
@@ -29,12 +25,30 @@ import {
 import { getMyEstablecimiento } from "@/services/establecimientoService";
 import { getCartasByEstablecimiento } from "@/services/cartaService";
 import { getStoredToken } from "@/services/authService";
+import type { Establecimiento } from "@/services/establecimientoService";
+
+const DEFAULT_RESUMEN: AnalyticsResumen = {
+  visitas: 0,
+  visitasUnicas: 0,
+  visitasCartas: 0,
+  visitasHoy: 0,
+  visitasSemana: 0,
+  visitasMes: 0,
+  visitasUltimos7Dias: 0,
+  visitasUltimos30Dias: 0,
+  tasaInteraccionCartas: 0,
+  promedioVisitasPorUsuario: 0,
+  ultimaVisita: null
+};
 
 export default function DashboardPage() {
-  const [establecimiento, setEstablecimiento] = useState<any>(null);
-  const [resumen, setResumen] = useState<AnalyticsResumen | null>(null);
+  const [establecimiento, setEstablecimiento] =
+    useState<Establecimiento | null>(null);
+  const [resumen, setResumen] =
+    useState<AnalyticsResumen>(DEFAULT_RESUMEN);
   const [visitas, setVisitas] = useState<VisitasPorDia[]>([]);
-  const [cartasTop, setCartasTop] = useState<(CartaTop & { nombre: string })[]>([]);
+  const [cartasTop, setCartasTop] =
+    useState<(CartaTop & { nombre: string })[]>([]);
   const [cartasActivas, setCartasActivas] = useState<number>(0);
   const [loading, setLoading] = useState(true);
 
@@ -49,6 +63,15 @@ export default function DashboardPage() {
       try {
         const est = await getMyEstablecimiento(token);
         setEstablecimiento(est);
+
+        if (!est) {
+          setResumen(DEFAULT_RESUMEN);
+          setVisitas([]);
+          setCartasTop([]);
+          setCartasActivas(0);
+          setLoading(false);
+          return;
+        }
 
         const [
           resumenData,
@@ -69,14 +92,14 @@ export default function DashboardPage() {
         setResumen(resumenData);
 
         setVisitas(
-          visitasData.map(v => ({
+          visitasData.map((v) => ({
             fecha: v.fecha,
             total: Number(v.total),
           }))
         );
 
         setCartasTop(
-          cartasTopData.map(c => ({
+          cartasTopData.map((c) => ({
             ...c,
             vistas: Number(c.vistas),
             nombre: cartasMap.get(c.carta_id) || `Carta ${c.carta_id}`,
@@ -104,40 +127,34 @@ export default function DashboardPage() {
     );
   }
 
-  if (!establecimiento) {
-    return (
-      <div className="pt-24 text-center text-sm text-gray-500">
-        No se encontró un establecimiento
-      </div>
-    );
-  }
-
   return (
     <div className="pt-24 space-y-16">
       <div>
         <h1 className="text-3xl font-semibold text-gray-800">
-          Estadísticas de {establecimiento.nombre}
+          Estadísticas {establecimiento ? `de ${establecimiento.nombre}` : ""}
         </h1>
         <p className="text-gray-500 mt-1">
-          Resumen general de tu negocio
+          {establecimiento
+            ? "Resumen general de tu negocio"
+            : "Crea tu establecimiento para comenzar a generar estadísticas"}
         </p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard
           title="Visitas totales"
-          value={resumen?.visitas ?? 0}
+          value={resumen.visitas}
           icon={FiEye}
           highlight
         />
         <StatCard
           title="Visitas únicas"
-          value={resumen?.visitasUnicas ?? 0}
+          value={resumen.visitasUnicas}
           icon={FiHome}
         />
         <StatCard
           title="Visitas a cartas"
-          value={resumen?.visitasCartas ?? 0}
+          value={resumen.visitasCartas}
           icon={FiEye}
         />
         <StatCard
@@ -150,17 +167,17 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
         <StatCard
           title="Visitas hoy"
-          value={resumen?.visitasHoy ?? 0}
+          value={resumen.visitasHoy}
           icon={FiEye}
         />
         <StatCard
           title="Visitas esta semana"
-          value={resumen?.visitasSemana ?? 0}
+          value={resumen.visitasSemana}
           icon={FiEye}
         />
         <StatCard
           title="Visitas este mes"
-          value={resumen?.visitasMes ?? 0}
+          value={resumen.visitasMes}
           icon={FiEye}
         />
       </div>

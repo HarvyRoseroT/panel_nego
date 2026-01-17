@@ -31,7 +31,13 @@ export default function CartasListaSortable({
   establecimientoId: number;
   onEdit: (c: Carta) => void;
 }) {
-  const sensors = useSensors(useSensor(PointerSensor));
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    })
+  );
 
   const handleToggleActiva = async (
     id: number,
@@ -40,7 +46,7 @@ export default function CartasListaSortable({
     const token = getStoredToken();
     if (!token) return;
 
-    const prev = cartas;
+    const prev = cartas.map((c) => ({ ...c }));
 
     setCartas((p) =>
       p.map((c) =>
@@ -90,6 +96,10 @@ export default function CartasListaSortable({
     setCartas((p) => p.filter((c) => c.id !== id));
   };
 
+  const cartasOrdenadas = [...cartas].sort(
+    (a, b) => a.orden - b.orden
+  );
+
   return (
     <DndContext
       sensors={sensors}
@@ -97,21 +107,19 @@ export default function CartasListaSortable({
       onDragEnd={handleDragEnd}
     >
       <SortableContext
-        items={cartas.map((c) => c.id)}
+        items={cartasOrdenadas.map((c) => c.id)}
         strategy={verticalListSortingStrategy}
       >
         <ul className="space-y-3">
-          {cartas
-            .sort((a, b) => a.orden - b.orden)
-            .map((carta) => (
-              <SortableCartaItem
-                key={carta.id}
-                carta={carta}
-                onEdit={() => onEdit(carta)}
-                onDelete={() => handleDelete(carta.id)}
-                onToggleActiva={handleToggleActiva}
-              />
-            ))}
+          {cartasOrdenadas.map((carta) => (
+            <SortableCartaItem
+              key={carta.id}
+              carta={carta}
+              onEdit={() => onEdit(carta)}
+              onDelete={() => handleDelete(carta.id)}
+              onToggleActiva={handleToggleActiva}
+            />
+          ))}
         </ul>
       </SortableContext>
     </DndContext>
