@@ -35,11 +35,11 @@ export default function EstablecimientoForm({
 }) {
   const [data, setData] = useState<EstablecimientoFormData>({
     nombre: "",
-    descripcion: null,
+    descripcion: "",
     pais: "",
     ciudad: "",
     direccion: "",
-    telefono_contacto: null,
+    telefono_contacto: "+",
     lat: null,
     lng: null,
     activo: true,
@@ -47,32 +47,54 @@ export default function EstablecimientoForm({
   });
 
   const [loading, setLoading] = useState(false);
-  const [missingFields, setMissingFields] = useState<string[]>([]);
+  const [errorTelefono, setErrorTelefono] = useState<string | null>(null);
 
   useEffect(() => {
     if (initialData) {
-      setData(initialData);
+      setData({
+        ...initialData,
+        activo: Boolean(initialData.activo),
+        domicilio_activo: Boolean(initialData.domicilio_activo),
+        telefono_contacto:
+          initialData.telefono_contacto?.startsWith("+")
+            ? initialData.telefono_contacto
+            : "+",
+      });
     }
   }, [initialData]);
 
-  const handleChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >
-  ) => {
-    setData({ ...data, [e.target.name]: e.target.value });
+  const handleTelefonoChange = (value: string) => {
+    let cleaned = value.replace(/[^\d+]/g, "");
+    if (!cleaned.startsWith("+")) cleaned = "+" + cleaned.replace(/\+/g, "");
+    cleaned = "+" + cleaned.substring(1).replace(/\+/g, "");
+    setData({ ...data, telefono_contacto: cleaned });
   };
 
   const validate = () => {
-    const errors: string[] = [];
+    if (!data.nombre) return false;
+    if (!data.pais) return false;
+    if (!data.ciudad) return false;
+    if (!data.direccion) return false;
+    if (data.descripcion && data.descripcion.length > 200) return false;
 
-    if (!data.nombre) errors.push("Nombre");
-    if (!data.pais) errors.push("País");
-    if (!data.ciudad) errors.push("Ciudad");
-    if (!data.direccion) errors.push("Dirección");
+    if (data.domicilio_activo) {
+      if (!data.telefono_contacto) return false;
+      if (!data.telefono_contacto.startsWith("+")) {
+        setErrorTelefono(
+          "El número debe iniciar con el código de país (ej: +57)"
+        );
+        return false;
+      }
+      if (!/^\+\d{6,15}$/.test(data.telefono_contacto)) {
+        setErrorTelefono(
+          "El número debe contener solo números después del código de país"
+        );
+        return false;
+      }
+    }
 
-    setMissingFields(errors);
-    return errors.length === 0;
+    setErrorTelefono(null);
+    return true;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -91,7 +113,9 @@ export default function EstablecimientoForm({
         pais: data.pais,
         ciudad: data.ciudad,
         direccion: data.direccion,
-        telefono_contacto: data.telefono_contacto,
+        telefono_contacto: data.domicilio_activo
+          ? data.telefono_contacto
+          : null,
         lat: data.lat,
         lng: data.lng,
         activo: data.activo,
@@ -119,30 +143,35 @@ export default function EstablecimientoForm({
 
       <Field label="Nombre">
         <input
-          name="nombre"
           value={data.nombre}
-          onChange={handleChange}
+          onChange={(e) => setData({ ...data, nombre: e.target.value })}
           className="input-ui"
+          required
         />
       </Field>
 
-      <Field label="Descripción">
+      <Field label="Descripción (máx. 200 caracteres)">
         <textarea
-          name="descripcion"
           value={data.descripcion ?? ""}
-          onChange={handleChange}
+          maxLength={200}
           rows={3}
+          onChange={(e) =>
+            setData({ ...data, descripcion: e.target.value })
+          }
           className="input-ui resize-none"
         />
+        <div className="text-xs text-gray-500 text-right">
+          {(data.descripcion?.length ?? 0)}/200
+        </div>
       </Field>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Field label="País">
           <select
-            name="pais"
             value={data.pais}
-            onChange={handleChange}
+            onChange={(e) => setData({ ...data, pais: e.target.value })}
             className="input-ui"
+            required
           >
             <option value="">Selecciona un país</option>
             {paises.map((p) => (
@@ -155,20 +184,22 @@ export default function EstablecimientoForm({
 
         <Field label="Ciudad">
           <input
-            name="ciudad"
             value={data.ciudad}
-            onChange={handleChange}
+            onChange={(e) => setData({ ...data, ciudad: e.target.value })}
             className="input-ui"
+            required
           />
         </Field>
       </div>
 
-      <Field label="Teléfono de contacto">
+      <Field label="Dirección">
         <input
-          name="telefono_contacto"
-          value={data.telefono_contacto ?? ""}
-          onChange={handleChange}
+          value={data.direccion}
+          onChange={(e) =>
+            setData({ ...data, direccion: e.target.value })
+          }
           className="input-ui"
+          required
         />
       </Field>
 
@@ -180,40 +211,43 @@ export default function EstablecimientoForm({
         />
       </Field>
 
-      <Field label="Dirección">
-        <input
-          name="direccion"
-          value={data.direccion}
-          onChange={handleChange}
-          className="input-ui"
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Switch
+          label="Establecimiento activo"
+          checked={data.activo}
+          onChange={(v) => setData({ ...data, activo: v })}
         />
-      </Field>
 
-      <div className="flex flex-col gap-3">
-        <label className="flex items-center gap-3 text-sm text-gray-700">
-          <input
-            type="checkbox"
-            checked={data.activo}
-            onChange={(e) =>
-              setData({ ...data, activo: e.target.checked })
-            }
-          />
-          Establecimiento activo
-        </label>
-
-        <label className="flex items-center gap-3 text-sm text-gray-700">
-          <input
-            type="checkbox"
-            checked={data.domicilio_activo}
-            onChange={(e) =>
-              setData({ ...data, domicilio_activo: e.target.checked })
-            }
-          />
-          Domicilio
-        </label>
+        <Switch
+          label="Domicilio disponible"
+          checked={data.domicilio_activo}
+          onChange={(v) =>
+            setData({
+              ...data,
+              domicilio_activo: v,
+              telefono_contacto: v ? "+" : "",
+            })
+          }
+        />
       </div>
 
-      <div className="flex justify-end gap-3">
+      {data.domicilio_activo && (
+        <Field label="Contacto / WhatsApp (incluye código de país)">
+          <input
+            value={data.telefono_contacto ?? ""}
+            onChange={(e) => handleTelefonoChange(e.target.value)}
+            className="input-ui"
+            inputMode="numeric"
+            placeholder="+573001234567"
+            required
+          />
+          {errorTelefono && (
+            <p className="text-sm text-red-500 mt-1">{errorTelefono}</p>
+          )}
+        </Field>
+      )}
+
+      <div className="flex justify-end gap-3 pt-4">
         <button type="button" onClick={onCancel} className="btn-secondary">
           Cancelar
         </button>
@@ -236,6 +270,35 @@ function Field({
     <label className="block space-y-1">
       <span className="text-sm font-medium text-gray-700">{label}</span>
       {children}
+    </label>
+  );
+}
+
+function Switch({
+  label,
+  checked,
+  onChange,
+}: {
+  label: string;
+  checked: boolean;
+  onChange: (v: boolean) => void;
+}) {
+  return (
+    <label className="flex items-center justify-between gap-4 p-4 rounded-xl bg-gray-50">
+      <span className="text-sm font-medium text-gray-700">{label}</span>
+      <button
+        type="button"
+        onClick={() => onChange(!checked)}
+        className={`w-12 h-6 rounded-full transition ${
+          checked ? "bg-green-500" : "bg-gray-300"
+        }`}
+      >
+        <span
+          className={`block w-5 h-5 bg-white rounded-full transform transition ${
+            checked ? "translate-x-6" : "translate-x-1"
+          }`}
+        />
+      </button>
     </label>
   );
 }
