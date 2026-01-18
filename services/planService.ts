@@ -3,7 +3,8 @@ import api from "@/services/api";
 export interface Plan {
   id: number;
   name: string;
-  price: string;
+  price: number;
+  currency: string;
   interval: "month" | "year";
   duration_days: number;
 }

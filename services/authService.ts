@@ -8,18 +8,26 @@ export interface Plan {
 
 export interface Subscription {
   id: number;
-  status: "trial" | "active" | "expired" | "canceled";
+  status:
+    | "trial"
+    | "pending"
+    | "active"
+    | "past_due"
+    | "expired"
+    | "canceled";
   start_date: string;
   trial_end_date?: string;
   end_date?: string;
   Plan?: Plan;
 }
 
+
 export interface AuthUser {
   id: number;
   name: string;
   email: string;
   role: string;
+  stripe_customer_id?: string | null;
   subscription?: Subscription | null;
 }
 
