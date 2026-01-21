@@ -20,7 +20,7 @@ export default function Header({
 }: {
   onToggleSidebar: () => void;
 }) {
-  const { user, logout } = useUser();
+  const { user, logout, refreshUser } = useUser();
   const router = useRouter();
 
   const [openMenu, setOpenMenu] = useState(false);
@@ -44,6 +44,11 @@ export default function Header({
     router.replace("/login");
   };
 
+  const handleOpenPlanes = async () => {
+    await refreshUser();
+    setOpenPlanes(true);
+  };
+
   const subscription = user?.subscription;
 
   const statusConfig: Record<
@@ -55,6 +60,11 @@ export default function Header({
       styles: "bg-yellow-100 text-yellow-800",
       Icon: FiGift,
     },
+    pending: {
+      label: "Pendiente",
+      styles: "bg-orange-100 text-orange-700",
+      Icon: FiAlertTriangle,
+    },
     active: {
       label: "Plan activo",
       styles: "bg-[#72eb15]/20 text-[#3fa10a]",
@@ -62,7 +72,7 @@ export default function Header({
     },
     expired: {
       label: "Plan expirado",
-      styles: "bg-red-100 text-red-700",
+      styles: "bg-gray-100 text-gray-600",
       Icon: FiAlertTriangle,
     },
     canceled: {
@@ -89,7 +99,7 @@ export default function Header({
 
           {subscription && planUI && (
             <button
-              onClick={() => setOpenPlanes(true)}
+              onClick={handleOpenPlanes}
               className={`
                 flex items-center gap-2.5
                 px-5 py-2.5 rounded-xl
@@ -166,6 +176,7 @@ export default function Header({
       <ModalPlanes
         open={openPlanes}
         onClose={() => setOpenPlanes(false)}
+        currentSubscription={user?.subscription}
       />
     </>
   );

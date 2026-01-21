@@ -15,10 +15,10 @@ export interface Subscription {
     | "past_due"
     | "expired"
     | "canceled";
-  start_date: string;
-  trial_end_date?: string;
-  end_date?: string;
-  Plan?: Plan;
+
+  ends_at?: string | null;
+
+  Plan?: Plan | null;
 }
 
 
@@ -26,10 +26,10 @@ export interface AuthUser {
   id: number;
   name: string;
   email: string;
-  role: string;
   stripe_customer_id?: string | null;
   subscription?: Subscription | null;
 }
+
 
 interface LoginResponse {
   token: string;
@@ -58,6 +58,12 @@ export async function loginRequest(
 
   return data;
 }
+
+export async function getMe(): Promise<AuthUser> {
+  const { data } = await api.get("/auth/me");
+  return data;
+}
+
 
 export async function registerRequest(
   name: string,

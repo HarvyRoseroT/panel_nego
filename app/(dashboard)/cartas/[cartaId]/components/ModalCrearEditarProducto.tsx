@@ -12,8 +12,9 @@ interface Props {
   seccion: Seccion | null;
   producto?: Producto | null;
   onClose: () => void;
-  onSuccess?: () => void;
+  onSuccess?: (producto: Producto) => void;
 }
+
 
 export default function ModalCrearEditarProducto({
   open,
@@ -73,9 +74,10 @@ export default function ModalCrearEditarProducto({
     if (!token) return;
 
     const precioNumber = Number(precio);
+    let savedProducto: Producto;
 
     if (producto) {
-      await updateProducto(
+      savedProducto = await updateProducto(
         producto.id,
         {
           nombre,
@@ -86,7 +88,7 @@ export default function ModalCrearEditarProducto({
         token
       );
     } else {
-      await createProducto(
+      savedProducto = await createProducto(
         {
           nombre,
           descripcion,
@@ -98,9 +100,10 @@ export default function ModalCrearEditarProducto({
       );
     }
 
-    onSuccess?.();
+    onSuccess?.(savedProducto);
     onClose();
   };
+
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">

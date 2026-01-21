@@ -61,6 +61,10 @@ export async function getMyEstablecimiento(
       return null;
     }
 
+    if (error?.response?.status === 402) {
+      return null;
+    }
+
     throw error;
   }
 }

@@ -246,10 +246,13 @@ export default function SeccionesCartaPage() {
           setProductoParaEditar(null);
           setSeccionActiva(null);
         }}
-        onSuccess={() => {
+        onSuccess={(productoCreado) => {
           if (seccionActiva) fetchProductos(seccionActiva.id);
+          setProductoPreview(productoCreado);
+          setOpenUpload(true);
         }}
       />
+
 
       <ModalPreviewImagenProducto
         open={openPreview}

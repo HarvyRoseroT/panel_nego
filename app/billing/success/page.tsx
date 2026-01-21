@@ -1,9 +1,16 @@
 "use client";
 
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useUser } from "@/contexts/UserContext";
 
 export default function BillingSuccessPage() {
   const router = useRouter();
+  const { refreshUser } = useUser();
+
+  useEffect(() => {
+    refreshUser();
+  }, [refreshUser]);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50">
