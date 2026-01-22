@@ -9,6 +9,7 @@ import {
   FiBox,
   FiSettings,
   FiZap,
+  FiFileText
 } from "react-icons/fi";
 
 const items = [
@@ -16,6 +17,7 @@ const items = [
   { label: "Establecimiento", href: "/establecimiento", icon: FiHome },
   { label: "Cartas", href: "/cartas", icon: FiBookOpen },
   { label: "Productos", href: "/productos", icon: FiBox },
+  { label: "Facturas", href: "/facturas", icon: FiFileText },
   { label: "Configuración", href: "/configuracion", icon: FiSettings },
 ];
 

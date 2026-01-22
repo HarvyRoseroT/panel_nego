@@ -15,12 +15,9 @@ export interface Subscription {
     | "past_due"
     | "expired"
     | "canceled";
-
   ends_at?: string | null;
-
   Plan?: Plan | null;
 }
-
 
 export interface AuthUser {
   id: number;
@@ -28,6 +25,13 @@ export interface AuthUser {
   email: string;
   stripe_customer_id?: string | null;
   subscription?: Subscription | null;
+  notification_preferences?: NotificationPreferences;
+}
+
+export interface NotificationPreferences {
+  emails_pagos: boolean;
+  emails_cambios_plan: boolean;
+  emails_novedades: boolean;
 }
 
 
@@ -41,6 +45,10 @@ interface RegisterResponse {
 }
 
 interface VerifyEmailResponse {
+  message: string;
+}
+
+interface PasswordResetResponse {
   message: string;
 }
 
@@ -63,7 +71,6 @@ export async function getMe(): Promise<AuthUser> {
   const { data } = await api.get("/auth/me");
   return data;
 }
-
 
 export async function registerRequest(
   name: string,
@@ -89,6 +96,28 @@ export async function verifyEmailRequest(
   return data;
 }
 
+export async function requestPasswordReset(
+  email: string
+): Promise<PasswordResetResponse> {
+  const { data } = await api.post("/auth/request-password-reset", {
+    email,
+  });
+
+  return data;
+}
+
+export async function resetPassword(
+  token: string,
+  newPassword: string
+): Promise<PasswordResetResponse> {
+  const { data } = await api.post("/auth/reset-password", {
+    token,
+    newPassword,
+  });
+
+  return data;
+}
+
 export function logout() {
   localStorage.removeItem("token");
   localStorage.removeItem("user");
@@ -107,4 +136,24 @@ export function getStoredToken(): string | null {
 
 export function isAuthenticated(): boolean {
   return !!getStoredToken();
+}
+
+export async function updateNotificationPreferences(
+  preferences: Partial<NotificationPreferences>
+): Promise<NotificationPreferences> {
+  const { data } = await api.put(
+    "/auth/update-notification-preferences",
+    preferences
+  );
+
+  const storedUser = getStoredUser();
+  if (storedUser) {
+    const updatedUser = {
+      ...storedUser,
+      notification_preferences: data.notification_preferences
+    };
+    localStorage.setItem("user", JSON.stringify(updatedUser));
+  }
+
+  return data.notification_preferences;
 }
