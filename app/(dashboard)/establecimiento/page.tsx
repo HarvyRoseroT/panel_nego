@@ -3,11 +3,11 @@
 import { useEffect, useState } from "react";
 import EstablecimientoForm from "./components/EstablecimientoForm";
 import EstablecimientoCard from "./components/EstablecimientoCard";
-import { getMyEstablecimiento } from "@/services/establecimientoService";
+import { getMyEstablecimiento, Establecimiento } from "@/services/establecimientoService";
 import { getStoredToken } from "@/services/authService";
 
 export default function EstablecimientoPage() {
-  const [establecimiento, setEstablecimiento] = useState<any>(null);
+  const [establecimiento, setEstablecimiento] = useState<Establecimiento | null>(null);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
 
@@ -42,7 +42,6 @@ export default function EstablecimientoPage() {
 
   return (
     <div className="w-full max-w-7xl mx-auto px-4 lg:px-8 pt-8 space-y-8">
-      {/* Header de la página */}
       <div className="text-center space-y-1">
         <h1 className="text-2xl font-semibold">Establecimiento</h1>
         <p className="text-sm text-gray-600">
@@ -50,7 +49,6 @@ export default function EstablecimientoPage() {
         </p>
       </div>
 
-      {/* Contenido */}
       <div className="mx-auto w-full max-w-3xl">
         {!establecimiento || editing ? (
           <EstablecimientoForm
@@ -66,13 +64,11 @@ export default function EstablecimientoPage() {
             establecimiento={establecimiento}
             onEdit={() => setEditing(true)}
             onUpdated={(data) =>
-              setEstablecimiento((prev: any) => ({
-                ...prev,
-                ...data,
-              }))
+              setEstablecimiento((prev) =>
+                prev ? { ...prev, ...data } : prev
+              )
             }
           />
-
         )}
       </div>
     </div>

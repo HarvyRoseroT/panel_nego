@@ -10,6 +10,7 @@ import { getStoredToken } from "@/services/authService";
 
 interface EstablecimientoFormData {
   id?: number;
+  slug?: string;
   nombre: string;
   descripcion: string | null;
   pais: string;
@@ -21,6 +22,7 @@ interface EstablecimientoFormData {
   activo: boolean;
   domicilio_activo: boolean;
 }
+
 
 const paises = ["Colombia", "Ecuador", "Peru", "Venezuela", "Chile"];
 

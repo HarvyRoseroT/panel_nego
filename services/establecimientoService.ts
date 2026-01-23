@@ -2,6 +2,8 @@ import api from "@/services/api";
 
 export interface Establecimiento {
   id: number;
+  user_id: number;
+  slug: string;
   nombre: string;
   descripcion: string | null;
   pais: string;
@@ -14,7 +16,6 @@ export interface Establecimiento {
   imagen_ubicacion_url: string | null;
   activo: boolean;
   domicilio_activo: boolean;
-  user_id: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -38,8 +39,8 @@ export async function createEstablecimiento(
 ): Promise<Establecimiento> {
   const { data } = await api.post("/establecimientos", payload, {
     headers: {
-      Authorization: `Bearer ${token}`,
-    },
+      Authorization: `Bearer ${token}`
+    }
   });
 
   return data;
@@ -51,24 +52,24 @@ export async function getMyEstablecimiento(
   try {
     const { data } = await api.get("/establecimientos", {
       headers: {
-        Authorization: `Bearer ${token}`,
-      },
+        Authorization: `Bearer ${token}`
+      }
     });
 
     return data;
   } catch (error: any) {
-    if (error?.response?.status === 404) {
-      return null;
-    }
-
-    if (error?.response?.status === 402) {
-      return null;
-    }
-
+    if (error?.response?.status === 404) return null;
+    if (error?.response?.status === 402) return null;
     throw error;
   }
 }
 
+export async function getEstablecimientoBySlug(
+  slug: string
+): Promise<Establecimiento> {
+  const { data } = await api.get(`/public/establecimientos/${slug}`);
+  return data;
+}
 
 export async function updateEstablecimiento(
   id: number,
@@ -77,8 +78,8 @@ export async function updateEstablecimiento(
 ): Promise<Establecimiento> {
   const { data } = await api.put(`/establecimientos/${id}`, payload, {
     headers: {
-      Authorization: `Bearer ${token}`,
-    },
+      Authorization: `Bearer ${token}`
+    }
   });
 
   return data;
@@ -90,8 +91,8 @@ export async function deleteEstablecimiento(
 ): Promise<void> {
   await api.delete(`/establecimientos/${id}`, {
     headers: {
-      Authorization: `Bearer ${token}`,
-    },
+      Authorization: `Bearer ${token}`
+    }
   });
 }
 
@@ -109,8 +110,8 @@ export async function subirLogoEstablecimiento(
     {
       headers: {
         Authorization: `Bearer ${token}`,
-        "Content-Type": "multipart/form-data",
-      },
+        "Content-Type": "multipart/form-data"
+      }
     }
   );
 
@@ -121,14 +122,11 @@ export async function borrarLogoEstablecimiento(
   id: number,
   token: string
 ): Promise<{ success: boolean }> {
-  const { data } = await api.delete(
-    `/establecimientos/${id}/logo`,
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+  const { data } = await api.delete(`/establecimientos/${id}/logo`, {
+    headers: {
+      Authorization: `Bearer ${token}`
     }
-  );
+  });
 
   return data;
 }
@@ -147,8 +145,8 @@ export async function subirImagenUbicacionEstablecimiento(
     {
       headers: {
         Authorization: `Bearer ${token}`,
-        "Content-Type": "multipart/form-data",
-      },
+        "Content-Type": "multipart/form-data"
+      }
     }
   );
 
@@ -163,8 +161,8 @@ export async function borrarImagenUbicacionEstablecimiento(
     `/establecimientos/${id}/imagen-ubicacion`,
     {
       headers: {
-        Authorization: `Bearer ${token}`,
-      },
+        Authorization: `Bearer ${token}`
+      }
     }
   );
 
