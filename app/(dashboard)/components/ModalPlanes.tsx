@@ -44,7 +44,6 @@ export default function ModalPlanes({
   const [planes, setPlanes] = useState<Plan[]>([]);
   const [loading, setLoading] = useState(false);
   const [payingPlanId, setPayingPlanId] = useState<number | null>(null);
-  const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [confirmPlan, setConfirmPlan] = useState<Plan | null>(null);
 
   const subscription = currentSubscription ?? user?.subscription;
@@ -82,9 +81,8 @@ export default function ModalPlanes({
     if (!confirmPlan) return;
     try {
       setPayingPlanId(confirmPlan.id);
-      const { clientSecret } = await createSubscription(confirmPlan.id);
-      setClientSecret(clientSecret);
-      setConfirmPlan(null);
+      const { url } = await createSubscription(confirmPlan.id);
+      window.location.href = url;
     } finally {
       setPayingPlanId(null);
     }
@@ -236,12 +234,7 @@ export default function ModalPlanes({
       )}
 
 
-      {clientSecret && (
-        <ModalPago
-          clientSecret={clientSecret}
-          onClose={() => setClientSecret(null)}
-        />
-      )}
+      
     </>
   );
 }

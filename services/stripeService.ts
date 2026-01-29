@@ -1,7 +1,7 @@
 import api from "@/services/api";
 
 interface CreateSubscriptionResponse {
-  clientSecret: string;
+  url: string;
 }
 
 export async function createSubscription(
