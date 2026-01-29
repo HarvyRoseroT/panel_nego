@@ -15,6 +15,7 @@ import { useEffect, useState } from "react";
 import {
   loginRequest,
   requestPasswordReset,
+  resendVerificationEmailRequest,
 } from "@/services/authService";
 import { useUser } from "@/contexts/UserContext";
 import { useRouter } from "next/navigation";
@@ -39,6 +40,7 @@ export default function LoginPage() {
   const [sent, setSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notVerified, setNotVerified] = useState(false);
+  const [verificationSent, setVerificationSent] = useState(false);
 
   useRedirectIfAuth();
 
@@ -58,6 +60,7 @@ export default function LoginPage() {
     setLoading(true);
     setError(null);
     setNotVerified(false);
+    setVerificationSent(false);
 
     try {
       const data = await loginRequest(values.email, values.password);
@@ -65,8 +68,15 @@ export default function LoginPage() {
       router.replace("/dashboard");
     } catch (err: any) {
       const message = err?.response?.data?.message;
+
       if (message === "Please verify your email before logging in") {
         setNotVerified(true);
+        try {
+          await resendVerificationEmailRequest(values.email);
+          setVerificationSent(true);
+        } catch {
+          setVerificationSent(false);
+        }
       } else {
         setError(message || "Credenciales inválidas");
       }
@@ -113,8 +123,15 @@ export default function LoginPage() {
           </Typography>
 
           {notVerified && (
-            <Typography color={PRIMARY_DARK} textAlign="center" fontWeight={600} mb={2}>
-              Debes verificar tu correo antes de iniciar sesión
+            <Typography
+              textAlign="center"
+              fontWeight={600}
+              mb={2}
+              color={PRIMARY_DARK}
+            >
+              {verificationSent
+                ? "Te hemos enviado un correo de verificación. Revisa tu bandeja de entrada o Spam."
+                : "Debes verificar tu correo antes de iniciar sesión"}
             </Typography>
           )}
 

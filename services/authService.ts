@@ -52,20 +52,22 @@ interface PasswordResetResponse {
   message: string;
 }
 
+export interface ResendVerificationResponse {
+  message: string;
+}
+
 export async function loginRequest(
   email: string,
   password: string
 ): Promise<LoginResponse> {
-  const { data } = await api.post("/auth/login", {
-    email,
-    password,
-  });
+  const { data } = await api.post("/auth/login", { email, password });
 
   localStorage.setItem("token", data.token);
   localStorage.setItem("user", JSON.stringify(data.user));
 
   return data;
 }
+
 
 export async function getMe(): Promise<AuthUser> {
   const { data } = await api.get("/auth/me");
@@ -106,6 +108,26 @@ export async function requestPasswordReset(
   return data;
 }
 
+
+export async function resendVerificationEmailRequest(
+  email: string
+): Promise<ResendVerificationResponse> {
+  try {
+    const { data } = await api.post("/auth/resend-verification", {
+      email,
+    });
+
+    return data;
+  } catch (error: any) {
+    const message =
+      error?.response?.data?.message ||
+      "No se pudo reenviar el correo de verificación";
+
+    throw new Error(message);
+  }
+}
+
+
 export async function resetPassword(
   token: string,
   newPassword: string
@@ -125,9 +147,15 @@ export function logout() {
 
 export function getStoredUser(): AuthUser | null {
   if (typeof window === "undefined") return null;
-  const user = localStorage.getItem("user");
-  return user ? JSON.parse(user) : null;
+  try {
+    const user = localStorage.getItem("user");
+    return user ? JSON.parse(user) : null;
+  } catch {
+    localStorage.removeItem("user");
+    return null;
+  }
 }
+
 
 export function getStoredToken(): string | null {
   if (typeof window === "undefined") return null;
