@@ -70,7 +70,13 @@ export default function ModalPlanes({
         window.location.href = url;
       } else {
         const url = await createSubscription(confirmPlan.id);
+        console.log("URL STRIPE:", url);
+        if (!url) {
+          alert("Stripe no devolvió URL");
+          return;
+        }
         window.location.href = url;
+
       }
     } finally {
       setPayingPlanId(null);
