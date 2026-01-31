@@ -3,9 +3,11 @@
 import { useEffect, useState } from "react";
 import { FiX, FiCheck } from "react-icons/fi";
 import { getPlanes } from "@/services/planService";
-import { createSubscription } from "@/services/stripeService";
+import {
+  createSubscription,
+  openBillingPortal,
+} from "@/services/stripeService";
 import { useUser } from "@/contexts/UserContext";
-import ModalPago from "./ModalPago";
 
 interface Plan {
   id: number;
@@ -23,7 +25,6 @@ interface CurrentSubscription {
     | "past_due"
     | "expired"
     | "canceled";
-  ends_at?: string | null;
   Plan?: {
     id: number;
     name: string;
@@ -47,29 +48,7 @@ export default function ModalPlanes({
   const [confirmPlan, setConfirmPlan] = useState<Plan | null>(null);
 
   const subscription = currentSubscription ?? user?.subscription;
-
-  const showEndDate =
-    subscription?.status === "active" ||
-    subscription?.status === "trial";
-
   const currentPlanId = subscription?.Plan?.id;
-
-  const now = new Date();
-  const startDate = now.toLocaleDateString("es-CO", {
-    day: "2-digit",
-    month: "long",
-    year: "numeric",
-  });
-
-  const getEndDate = (days: number) => {
-    const d = new Date();
-    d.setDate(d.getDate() + days);
-    return d.toLocaleDateString("es-CO", {
-      day: "2-digit",
-      month: "long",
-      year: "numeric",
-    });
-  };
 
   useEffect(() => {
     if (!open) return;
@@ -79,10 +58,20 @@ export default function ModalPlanes({
 
   const handleConfirmPlan = async () => {
     if (!confirmPlan) return;
+
     try {
       setPayingPlanId(confirmPlan.id);
-      const { url } = await createSubscription(confirmPlan.id);
-      window.location.href = url;
+
+      if (
+        subscription?.status === "active" ||
+        subscription?.status === "past_due"
+      ) {
+        const url = await openBillingPortal();
+        window.location.href = url;
+      } else {
+        const url = await createSubscription(confirmPlan.id);
+        window.location.href = url;
+      }
     } finally {
       setPayingPlanId(null);
     }
@@ -110,7 +99,7 @@ export default function ModalPlanes({
             </p>
           </div>
 
-          {subscription?.Plan && showEndDate && (
+          {subscription?.Plan && (
             <div className="mb-5 rounded-xl border border-[#72eb15]/40 bg-[#72eb15]/10 px-5 py-4">
               <p className="text-sm font-semibold text-[#3fa10a]">
                 Plan actual
@@ -123,8 +112,7 @@ export default function ModalPlanes({
 
           <div className="grid gap-4">
             {planes.map((plan) => {
-              const isCurrentPlan =
-                showEndDate && plan.id === currentPlanId;
+              const isCurrentPlan = plan.id === currentPlanId;
 
               return (
                 <div
@@ -136,8 +124,7 @@ export default function ModalPlanes({
                       {plan.name}
                     </p>
                     <p className="text-sm text-gray-500">
-                      {plan.interval === "month" ? "Mensual" : "Anual"} ·{" "}
-                      {plan.duration_days} días
+                      {plan.interval === "month" ? "Mensual" : "Anual"}
                     </p>
                   </div>
 
@@ -171,10 +158,10 @@ export default function ModalPlanes({
           <div className="bg-white max-w-md w-full rounded-3xl shadow-xl overflow-hidden">
             <div className="px-6 py-5">
               <h3 className="text-lg font-bold text-gray-800">
-                Confirmar cambio de plan
+                Confirmar plan
               </h3>
               <p className="text-sm text-gray-500 mt-1">
-                Verifica los detalles antes de continuar
+                Serás redirigido a Stripe para continuar
               </p>
             </div>
 
@@ -191,24 +178,18 @@ export default function ModalPlanes({
                     {confirmPlan.interval === "month" ? "mes" : "año"}
                   </span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="font-medium">Inicio</span>
-                  <span>{startDate}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="font-medium">Finaliza</span>
-                  <span>{getEndDate(confirmPlan.duration_days)}</span>
-                </div>
               </div>
 
-              {subscription?.status === "active" && (
+              {(subscription?.status === "active" ||
+                subscription?.status === "past_due") && (
                 <div className="rounded-2xl bg-[#72eb15]/10 px-4 py-3">
                   <p className="text-sm font-semibold text-[#3fa10a]">
                     Información importante
                   </p>
                   <p className="mt-1 text-sm text-gray-600">
-                    Al continuar al pago, tu plan actual será cancelado y reemplazado por el nuevo
-                    plan una vez el pago se complete correctamente.
+                    Stripe ajustará automáticamente el precio de tu plan.
+                    Cualquier diferencia se cobrará o acreditará según
+                    corresponda.
                   </p>
                 </div>
               )}
@@ -226,15 +207,12 @@ export default function ModalPlanes({
                 disabled={payingPlanId === confirmPlan.id}
                 className="flex-1 py-2.5 rounded-xl bg-[#72eb15] text-[#365314] font-semibold hover:bg-[#64d413] transition disabled:opacity-60"
               >
-                Continuar al pago
+                Continuar
               </button>
             </div>
           </div>
         </div>
       )}
-
-
-      
     </>
   );
 }

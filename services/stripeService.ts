@@ -1,15 +1,13 @@
 import api from "@/services/api";
 
-interface CreateSubscriptionResponse {
-  url: string;
+export async function createSubscription(planId: number): Promise<string> {
+  const { data } = await api.post("/api/stripe/create-subscription", {
+    planId
+  });
+  return data.url;
 }
 
-export async function createSubscription(
-  planId: number
-): Promise<CreateSubscriptionResponse> {
-  const { data } = await api.post("/api/stripe/create-subscription", {
-    planId,
-  });
-
-  return data;
+export async function openBillingPortal(): Promise<string> {
+  const { data } = await api.post("/api/stripe/billing-portal");
+  return data.url;
 }
