@@ -8,6 +8,7 @@ import {
   Paper,
   CircularProgress,
   Divider,
+  LinearProgress,
 } from "@mui/material";
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
@@ -33,10 +34,27 @@ export default function RegisterPage() {
     }
   }, [router]);
 
+  const rules = {
+    length: password.length >= 8,
+    lowercase: /[a-z]/.test(password),
+    uppercase: /[A-Z]/.test(password),
+    number: /\d/.test(password),
+    symbol: /[^A-Za-z\d]/.test(password),
+  };
+
+  const strength = Object.values(rules).filter(Boolean).length;
+  const isStrong = strength === 5;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setSuccess(null);
+
+    if (!isStrong) {
+      setError("La contraseña no cumple los requisitos de seguridad");
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -50,51 +68,20 @@ export default function RegisterPage() {
   };
 
   return (
-    <Box
-      minHeight="100vh"
-      display="flex"
-      justifyContent="center"
-      alignItems="center"
-      px={2}
-    >
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
-      >
-        <Paper
-          elevation={6}
-          sx={{
-            p: 4,
-            width: 400,
-            borderRadius: 3,
-          }}
-        >
-          <Typography
-            variant="h5"
-            textAlign="center"
-            fontWeight={700}
-            color={PRIMARY_DARK}
-          >
+    <Box minHeight="100vh" display="flex" justifyContent="center" alignItems="center" px={2}>
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
+        <Paper elevation={6} sx={{ p: 4, width: 420, borderRadius: 3 }}>
+          <Typography variant="h5" textAlign="center" fontWeight={700} color={PRIMARY_DARK}>
             Crear cuenta
           </Typography>
 
-          <Typography
-            variant="body2"
-            textAlign="center"
-            color="text.secondary"
-            mb={3}
-          >
+          <Typography variant="body2" textAlign="center" color="text.secondary" mb={3}>
             Regístrate para comenzar
           </Typography>
 
           {success ? (
             <>
-              <Typography
-                color={PRIMARY_DARK}
-                textAlign="center"
-                fontWeight={600}
-              >
+              <Typography color={PRIMARY_DARK} textAlign="center" fontWeight={600}>
                 {success}
               </Typography>
 
@@ -106,9 +93,7 @@ export default function RegisterPage() {
                   fontWeight: 600,
                   backgroundColor: PRIMARY,
                   color: PRIMARY_DARK,
-                  "&:hover": {
-                    backgroundColor: "#84cc16",
-                  },
+                  "&:hover": { backgroundColor: "#84cc16" },
                 }}
                 onClick={() => router.push("/login")}
               >
@@ -124,11 +109,6 @@ export default function RegisterPage() {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
-                sx={{
-                  "& .MuiOutlinedInput-root.Mui-focused fieldset": {
-                    borderColor: PRIMARY,
-                  },
-                }}
               />
 
               <TextField
@@ -139,11 +119,6 @@ export default function RegisterPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                sx={{
-                  "& .MuiOutlinedInput-root.Mui-focused fieldset": {
-                    borderColor: PRIMARY,
-                  },
-                }}
               />
 
               <TextField
@@ -154,15 +129,37 @@ export default function RegisterPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                sx={{
-                  "& .MuiOutlinedInput-root.Mui-focused fieldset": {
-                    borderColor: PRIMARY,
-                  },
-                }}
               />
 
+              <Box mt={1.5}>
+                <LinearProgress
+                  variant="determinate"
+                  value={(strength / 5) * 100}
+                  sx={{
+                    height: 6,
+                    borderRadius: 3,
+                    backgroundColor: "#e5e7eb",
+                    "& .MuiLinearProgress-bar": {
+                      backgroundColor:
+                        strength <= 2 ? "#ef4444" :
+                        strength === 3 ? "#f59e0b" :
+                        strength === 4 ? "#84cc16" :
+                        PRIMARY,
+                    },
+                  }}
+                />
+
+                <Box mt={1.5} display="grid" gap={0.5}>
+                  <Rule ok={rules.length} text="Mínimo 8 caracteres" />
+                  <Rule ok={rules.uppercase} text="Una letra mayúscula" />
+                  <Rule ok={rules.lowercase} text="Una letra minúscula" />
+                  <Rule ok={rules.number} text="Un número" />
+                  <Rule ok={rules.symbol} text="Un símbolo" />
+                </Box>
+              </Box>
+
               {error && (
-                <Typography color="error" mt={1} fontSize={14}>
+                <Typography color="error" mt={1.5} fontSize={14}>
                   {error}
                 </Typography>
               )}
@@ -170,16 +167,15 @@ export default function RegisterPage() {
               <Button
                 type="submit"
                 fullWidth
-                disabled={loading}
+                disabled={loading || !isStrong}
                 sx={{
                   mt: 3,
                   py: 1.2,
                   fontWeight: 600,
                   backgroundColor: PRIMARY,
                   color: PRIMARY_DARK,
-                  "&:hover": {
-                    backgroundColor: "#84cc16",
-                  },
+                  "&:hover": { backgroundColor: "#84cc16" },
+                  "&:disabled": { opacity: 0.6 },
                 }}
               >
                 {loading ? (
@@ -193,11 +189,7 @@ export default function RegisterPage() {
 
           <Divider sx={{ my: 3 }} />
 
-          <Typography
-            variant="body2"
-            textAlign="center"
-            color="text.secondary"
-          >
+          <Typography variant="body2" textAlign="center" color="text.secondary">
             ¿Ya tienes cuenta?
           </Typography>
 
@@ -221,5 +213,17 @@ export default function RegisterPage() {
         </Paper>
       </motion.div>
     </Box>
+  );
+}
+
+function Rule({ ok, text }: { ok: boolean; text: string }) {
+  return (
+    <Typography
+      fontSize={13}
+      color={ok ? "#166534" : "text.secondary"}
+      fontWeight={ok ? 600 : 400}
+    >
+      {ok ? "✔︎" : "•"} {text}
+    </Typography>
   );
 }

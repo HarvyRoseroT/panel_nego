@@ -15,9 +15,15 @@ export interface Subscription {
     | "past_due"
     | "expired"
     | "canceled";
+
   ends_at?: string | null;
+
+  current_period_end?: string | null;
+  cancel_at_period_end?: boolean;
+
   Plan?: Plan | null;
 }
+
 
 export interface AuthUser {
   id: number;

@@ -8,6 +8,7 @@ import {
   openBillingPortal,
 } from "@/services/stripeService";
 import { useUser } from "@/contexts/UserContext";
+import api from "@/services/api";
 
 interface Plan {
   id: number;
@@ -29,6 +30,8 @@ interface CurrentSubscription {
     id: number;
     name: string;
   } | null;
+  current_period_end?: string | null;
+  cancel_at_period_end?: boolean;
 }
 
 export default function ModalPlanes({
@@ -40,15 +43,17 @@ export default function ModalPlanes({
   onClose: () => void;
   currentSubscription?: CurrentSubscription | null;
 }) {
-  const { user } = useUser();
+  const { user, refreshUser } = useUser();
 
   const [planes, setPlanes] = useState<Plan[]>([]);
   const [loading, setLoading] = useState(false);
   const [payingPlanId, setPayingPlanId] = useState<number | null>(null);
   const [confirmPlan, setConfirmPlan] = useState<Plan | null>(null);
+  const [updatingSubscription, setUpdatingSubscription] = useState(false);
 
   const subscription = currentSubscription ?? user?.subscription;
-  const currentPlanId = subscription?.Plan?.id;
+  const currentPlanId =
+    subscription?.status === "pending" ? null : subscription?.Plan?.id ?? null;
 
   useEffect(() => {
     if (!open) return;
@@ -70,16 +75,31 @@ export default function ModalPlanes({
         window.location.href = url;
       } else {
         const url = await createSubscription(confirmPlan.id);
-        console.log("URL STRIPE:", url);
-        if (!url) {
-          alert("Stripe no devolvió URL");
-          return;
-        }
+        if (!url) return;
         window.location.href = url;
-
       }
     } finally {
       setPayingPlanId(null);
+    }
+  };
+
+  const cancelAtPeriodEnd = async () => {
+    try {
+      setUpdatingSubscription(true);
+      await api.post("/api/stripe/cancel-subscription");
+      await refreshUser();
+    } finally {
+      setUpdatingSubscription(false);
+    }
+  };
+
+  const reactivateSubscription = async () => {
+    try {
+      setUpdatingSubscription(true);
+      await api.post("/api/stripe/reactivate-subscription");
+      await refreshUser();
+    } finally {
+      setUpdatingSubscription(false);
     }
   };
 
@@ -105,7 +125,26 @@ export default function ModalPlanes({
             </p>
           </div>
 
-          {subscription?.Plan && (
+          {subscription?.status === "active" &&
+            subscription.current_period_end && (
+              <div className="mb-5 rounded-xl border border-blue-200 bg-blue-50 px-5 py-4">
+                <p className="text-sm font-semibold text-blue-700">
+                  Información de facturación
+                </p>
+                <p className="mt-1 text-sm text-gray-700">
+                  Próximo cobro:{" "}
+                  <span className="font-semibold">
+                    {new Date(
+                      subscription.current_period_end
+                    ).toLocaleDateString("es-CO")}
+                  </span>
+                </p>
+
+              
+              </div>
+            )}
+
+          {subscription?.Plan && subscription.status !== "pending" && (
             <div className="mb-5 rounded-xl border border-[#72eb15]/40 bg-[#72eb15]/10 px-5 py-4">
               <p className="text-sm font-semibold text-[#3fa10a]">
                 Plan actual
@@ -185,20 +224,6 @@ export default function ModalPlanes({
                   </span>
                 </div>
               </div>
-
-              {(subscription?.status === "active" ||
-                subscription?.status === "past_due") && (
-                <div className="rounded-2xl bg-[#72eb15]/10 px-4 py-3">
-                  <p className="text-sm font-semibold text-[#3fa10a]">
-                    Información importante
-                  </p>
-                  <p className="mt-1 text-sm text-gray-600">
-                    Stripe ajustará automáticamente el precio de tu plan.
-                    Cualquier diferencia se cobrará o acreditará según
-                    corresponda.
-                  </p>
-                </div>
-              )}
             </div>
 
             <div className="px-6 py-5 flex gap-3">
