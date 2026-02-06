@@ -24,7 +24,7 @@ interface EstablecimientoFormData {
 }
 
 
-const paises = ["Colombia", "Ecuador", "Peru", "Venezuela", "Chile"];
+const paises = ["Colombia"];
 
 export default function EstablecimientoForm({
   initialData,
@@ -41,7 +41,7 @@ export default function EstablecimientoForm({
     pais: "",
     ciudad: "",
     direccion: "",
-    telefono_contacto: "+",
+    telefono_contacto: "",
     lat: null,
     lng: null,
     activo: true,
