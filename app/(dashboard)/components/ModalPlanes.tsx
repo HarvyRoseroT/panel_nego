@@ -1,14 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { FiX, FiCheck } from "react-icons/fi";
+import { FiX, FiCheck, FiExternalLink } from "react-icons/fi";
 import { getPlanes } from "@/services/planService";
 import {
   createSubscription,
   openBillingPortal,
 } from "@/services/stripeService";
 import { useUser } from "@/contexts/UserContext";
-import api from "@/services/api";
 
 interface Plan {
   id: number;
@@ -43,17 +42,21 @@ export default function ModalPlanes({
   onClose: () => void;
   currentSubscription?: CurrentSubscription | null;
 }) {
-  const { user, refreshUser } = useUser();
+  const { user } = useUser();
 
   const [planes, setPlanes] = useState<Plan[]>([]);
   const [loading, setLoading] = useState(false);
   const [payingPlanId, setPayingPlanId] = useState<number | null>(null);
   const [confirmPlan, setConfirmPlan] = useState<Plan | null>(null);
-  const [updatingSubscription, setUpdatingSubscription] = useState(false);
 
   const subscription = currentSubscription ?? user?.subscription;
+
   const currentPlanId =
     subscription?.status === "pending" ? null : subscription?.Plan?.id ?? null;
+
+  const canManageSubscription =
+    subscription?.status === "active" ||
+    subscription?.status === "past_due";
 
   useEffect(() => {
     if (!open) return;
@@ -67,10 +70,7 @@ export default function ModalPlanes({
     try {
       setPayingPlanId(confirmPlan.id);
 
-      if (
-        subscription?.status === "active" ||
-        subscription?.status === "past_due"
-      ) {
+      if (canManageSubscription) {
         const url = await openBillingPortal();
         window.location.href = url;
       } else {
@@ -83,24 +83,9 @@ export default function ModalPlanes({
     }
   };
 
-  const cancelAtPeriodEnd = async () => {
-    try {
-      setUpdatingSubscription(true);
-      await api.post("/api/stripe/cancel-subscription");
-      await refreshUser();
-    } finally {
-      setUpdatingSubscription(false);
-    }
-  };
-
-  const reactivateSubscription = async () => {
-    try {
-      setUpdatingSubscription(true);
-      await api.post("/api/stripe/reactivate-subscription");
-      await refreshUser();
-    } finally {
-      setUpdatingSubscription(false);
-    }
+  const handleOpenBillingPortal = async () => {
+    const url = await openBillingPortal();
+    window.location.href = url;
   };
 
   if (!open) return null;
@@ -125,6 +110,7 @@ export default function ModalPlanes({
             </p>
           </div>
 
+          {/* 🔔 Información de facturación */}
           {subscription?.status === "active" &&
             subscription.current_period_end && (
               <div className="mb-5 rounded-xl border border-blue-200 bg-blue-50 px-5 py-4">
@@ -140,10 +126,18 @@ export default function ModalPlanes({
                   </span>
                 </p>
 
-              
+                {/* 👉 BOTÓN ADMINISTRAR SUSCRIPCIÓN */}
+                <button
+                  onClick={handleOpenBillingPortal}
+                  className="mt-3 inline-flex items-center gap-2 text-sm font-semibold text-blue-700 hover:underline"
+                >
+                  Administrar suscripción
+                  <FiExternalLink />
+                </button>
               </div>
             )}
 
+          {/* 🟢 Plan actual */}
           {subscription?.Plan && subscription.status !== "pending" && (
             <div className="mb-5 rounded-xl border border-[#72eb15]/40 bg-[#72eb15]/10 px-5 py-4">
               <p className="text-sm font-semibold text-[#3fa10a]">
@@ -155,6 +149,7 @@ export default function ModalPlanes({
             </div>
           )}
 
+          {/* 📦 Planes */}
           <div className="grid gap-4">
             {planes.map((plan) => {
               const isCurrentPlan = plan.id === currentPlanId;
@@ -198,6 +193,7 @@ export default function ModalPlanes({
         </div>
       </div>
 
+      {/* 🔒 Confirmación */}
       {confirmPlan && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
           <div className="bg-white max-w-md w-full rounded-3xl shadow-xl overflow-hidden">
@@ -211,7 +207,7 @@ export default function ModalPlanes({
             </div>
 
             <div className="px-6 pb-6 space-y-4">
-              <div className="rounded-2xl bg-gray-50 px-4 py-4 space-y-2 text-sm text-gray-700">
+              <div className="rounded-2xl bg-gray-50 px-4 py-4 text-sm text-gray-700">
                 <div className="flex justify-between">
                   <span className="font-medium">Plan</span>
                   <span>{confirmPlan.name}</span>
@@ -229,14 +225,14 @@ export default function ModalPlanes({
             <div className="px-6 py-5 flex gap-3">
               <button
                 onClick={() => setConfirmPlan(null)}
-                className="flex-1 py-2.5 rounded-xl bg-gray-100 text-gray-700 font-medium hover:bg-gray-200 transition"
+                className="flex-1 py-2.5 rounded-xl bg-gray-100 text-gray-700 font-medium hover:bg-gray-200"
               >
                 Cancelar
               </button>
               <button
                 onClick={handleConfirmPlan}
                 disabled={payingPlanId === confirmPlan.id}
-                className="flex-1 py-2.5 rounded-xl bg-[#72eb15] text-[#365314] font-semibold hover:bg-[#64d413] transition disabled:opacity-60"
+                className="flex-1 py-2.5 rounded-xl bg-[#72eb15] text-[#365314] font-semibold hover:bg-[#64d413] disabled:opacity-60"
               >
                 Continuar
               </button>
