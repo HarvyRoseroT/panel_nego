@@ -33,6 +33,13 @@ interface CurrentSubscription {
   cancel_at_period_end?: boolean;
 }
 
+const formatCOP = (amount: number) =>
+  (amount / 100).toLocaleString("es-CO", {
+    style: "currency",
+    currency: "COP",
+    minimumFractionDigits: 0,
+  });
+
 export default function ModalPlanes({
   open,
   onClose,
@@ -110,7 +117,6 @@ export default function ModalPlanes({
             </p>
           </div>
 
-          {/* 🔔 Información de facturación */}
           {subscription?.status === "active" &&
             subscription.current_period_end && (
               <div className="mb-5 rounded-xl border border-blue-200 bg-blue-50 px-5 py-4">
@@ -126,7 +132,6 @@ export default function ModalPlanes({
                   </span>
                 </p>
 
-                {/* 👉 BOTÓN ADMINISTRAR SUSCRIPCIÓN */}
                 <button
                   onClick={handleOpenBillingPortal}
                   className="mt-3 inline-flex items-center gap-2 text-sm font-semibold text-blue-700 hover:underline"
@@ -137,7 +142,6 @@ export default function ModalPlanes({
               </div>
             )}
 
-          {/* 🟢 Plan actual */}
           {subscription?.Plan && subscription.status !== "pending" && (
             <div className="mb-5 rounded-xl border border-[#72eb15]/40 bg-[#72eb15]/10 px-5 py-4">
               <p className="text-sm font-semibold text-[#3fa10a]">
@@ -149,7 +153,6 @@ export default function ModalPlanes({
             </div>
           )}
 
-          {/* 📦 Planes */}
           <div className="grid gap-4">
             {planes.map((plan) => {
               const isCurrentPlan = plan.id === currentPlanId;
@@ -170,7 +173,7 @@ export default function ModalPlanes({
 
                   <div className="text-right">
                     <p className="text-2xl font-bold text-[#3fa10a]">
-                      ${Number(plan.price).toLocaleString("es-CO")}
+                      {formatCOP(plan.price)}
                     </p>
 
                     <button
@@ -193,7 +196,6 @@ export default function ModalPlanes({
         </div>
       </div>
 
-      {/* 🔒 Confirmación */}
       {confirmPlan && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
           <div className="bg-white max-w-md w-full rounded-3xl shadow-xl overflow-hidden">
@@ -215,7 +217,7 @@ export default function ModalPlanes({
                 <div className="flex justify-between">
                   <span className="font-medium">Precio</span>
                   <span>
-                    ${Number(confirmPlan.price).toLocaleString("es-CO")} /{" "}
+                    {formatCOP(confirmPlan.price)} /{" "}
                     {confirmPlan.interval === "month" ? "mes" : "año"}
                   </span>
                 </div>
