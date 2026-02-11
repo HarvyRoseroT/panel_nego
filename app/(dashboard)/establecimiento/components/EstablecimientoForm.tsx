@@ -23,6 +23,7 @@ interface EstablecimientoFormData {
   domicilio_activo: boolean;
 }
 
+
 const paises = ["Colombia"];
 
 export default function EstablecimientoForm({
@@ -56,9 +57,10 @@ export default function EstablecimientoForm({
         ...initialData,
         activo: Boolean(initialData.activo),
         domicilio_activo: Boolean(initialData.domicilio_activo),
-        telefono_contacto: initialData.telefono_contacto
-          ? "+" + initialData.telefono_contacto.replace(/\D/g, "")
-          : "+",
+        telefono_contacto:
+          initialData.telefono_contacto?.startsWith("+")
+            ? initialData.telefono_contacto
+            : "+",
       });
     }
   }, [initialData]);
@@ -107,17 +109,15 @@ export default function EstablecimientoForm({
       const token = getStoredToken();
       if (!token) return;
 
-      const telefonoSinPlus = data.telefono_contacto
-        ? data.telefono_contacto.replace(/\D/g, "")
-        : null;
-
       const payload = {
         nombre: data.nombre,
         descripcion: data.descripcion,
         pais: data.pais,
         ciudad: data.ciudad,
         direccion: data.direccion,
-        telefono_contacto: data.domicilio_activo ? telefonoSinPlus : null,
+        telefono_contacto: data.domicilio_activo
+          ? data.telefono_contacto
+          : null,
         lat: data.lat,
         lng: data.lng,
         activo: data.activo,
