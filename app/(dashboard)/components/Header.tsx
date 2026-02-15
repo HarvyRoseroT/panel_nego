@@ -13,8 +13,7 @@ import {
 } from "react-icons/fi";
 import { useRouter } from "next/navigation";
 import { useUser } from "@/contexts/UserContext";
-import { openBillingPortal } from "@/services/stripeService";
-import ModalPlanes from "./ModalPlanes";
+import ModalPlanes from "./ModalPlanesWompi";
 
 const GRACE_PERIOD_DAYS = 5;
 
@@ -60,44 +59,41 @@ export default function Header({
     setOpenPlanes(true);
   };
 
-  const handleFixPayment = async () => {
-    const url = await openBillingPortal();
-    window.location.href = url;
-  };
 
-  const subscription = user?.subscription;
+
+ const subscription = user?.subscription;
   const showGraceBanner = isInGracePeriod(subscription);
 
   const statusConfig: Record<
     string,
     { label: string; styles: string; Icon: any }
   > = {
-    trial: {
+    TRIAL: {
       label: "Prueba gratuita",
       styles: "bg-yellow-100 text-yellow-800",
       Icon: FiGift,
     },
-    pending: {
-      label: "Pendiente",
-      styles: "bg-orange-100 text-orange-700",
-      Icon: FiAlertTriangle,
-    },
-    active: {
+    ACTIVE: {
       label: "Plan activo",
       styles: "bg-[#72eb15]/20 text-[#3fa10a]",
       Icon: FiCheckCircle,
     },
-    past_due: {
+    PAST_DUE: {
       label: "Pago pendiente",
       styles: "bg-yellow-100 text-yellow-800",
       Icon: FiAlertTriangle,
     },
-    expired: {
+    FAILED: {
+      label: "Pago fallido",
+      styles: "bg-red-100 text-red-700",
+      Icon: FiXCircle,
+    },
+    EXPIRED: {
       label: "Plan expirado",
       styles: "bg-gray-100 text-gray-600",
       Icon: FiAlertTriangle,
     },
-    canceled: {
+    CANCELED: {
       label: "Plan cancelado",
       styles: "bg-gray-100 text-gray-600",
       Icon: FiXCircle,
@@ -118,12 +114,7 @@ export default function Header({
               Tu último pago falló. Estás en período de gracia.
             </span>
           </div>
-          <button
-            onClick={handleFixPayment}
-            className="px-4 py-2 rounded-lg bg-yellow-400 text-yellow-900 font-semibold text-sm hover:bg-yellow-500 transition"
-          >
-            Actualizar método de pago
-          </button>
+          
         </div>
       )}
 
@@ -195,10 +186,11 @@ export default function Header({
         </div>
       </header>
 
+    
+
       <ModalPlanes
         open={openPlanes}
         onClose={() => setOpenPlanes(false)}
-        currentSubscription={user?.subscription}
       />
     </>
   );

@@ -2,8 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useUser } from "@/contexts/UserContext";
-import { getInvoices, type Invoice } from "@/services/billingService";
-import { FiDownload, FiExternalLink } from "react-icons/fi";
+import { getMyInvoices, Invoice } from "@/services/wompiService";
 
 export default function FacturasPage() {
   const { token } = useUser();
@@ -13,7 +12,7 @@ export default function FacturasPage() {
   useEffect(() => {
     if (!token) return;
 
-    getInvoices(token)
+    getMyInvoices(token)
       .then(setInvoices)
       .finally(() => setLoading(false));
   }, [token]);
@@ -25,7 +24,7 @@ export default function FacturasPage() {
           Facturas
         </h1>
         <p className="text-sm text-gray-500 mt-1">
-          Historial de facturación y pagos realizados
+          Historial de pagos realizados
         </p>
       </header>
 
@@ -49,13 +48,13 @@ export default function FacturasPage() {
                     Fecha
                   </th>
                   <th className="px-6 py-4 text-left font-medium">
+                    Referencia
+                  </th>
+                  <th className="px-6 py-4 text-left font-medium">
                     Monto
                   </th>
                   <th className="px-6 py-4 text-left font-medium">
                     Estado
-                  </th>
-                  <th className="px-6 py-4 text-right font-medium">
-                    Acciones
                   </th>
                 </tr>
               </thead>
@@ -67,52 +66,36 @@ export default function FacturasPage() {
                     className="hover:bg-gray-50 transition"
                   >
                     <td className="px-6 py-4 text-gray-700">
-                      {new Date(inv.date).toLocaleDateString()}
+                      {inv.paid_at
+                        ? new Date(inv.paid_at).toLocaleDateString()
+                        : "-"}
+                    </td>
+
+                    <td className="px-6 py-4 text-gray-600">
+                      {inv.reference}
                     </td>
 
                     <td className="px-6 py-4 font-semibold text-gray-900">
-                      ${inv.amount.toLocaleString()}{" "}
-                      <span className="text-xs text-gray-500">
-                        {inv.currency}
-                      </span>
+                      {inv.currency} {(inv.amount / 100).toLocaleString("es-CO")}
+
                     </td>
 
                     <td className="px-6 py-4">
                       <span
                         className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
-                          inv.status === "paid"
+                          inv.status === "APPROVED"
                             ? "bg-[#72eb15]/20 text-[#3fa10a]"
-                            : "bg-yellow-100 text-yellow-700"
+                            : inv.status === "PENDING"
+                            ? "bg-yellow-100 text-yellow-700"
+                            : "bg-red-100 text-red-700"
                         }`}
                       >
-                        {inv.status === "paid" ? "Pagada" : inv.status}
+                        {inv.status === "APPROVED"
+                          ? "Pagada"
+                          : inv.status === "PENDING"
+                          ? "Pendiente"
+                          : inv.status}
                       </span>
-                    </td>
-
-                    <td className="px-6 py-4">
-                      <div className="flex justify-end gap-4">
-                        {inv.invoice_pdf && (
-                          <a
-                            href={inv.invoice_pdf}
-                            target="_blank"
-                            className="inline-flex items-center gap-1 text-gray-600 hover:text-[#3fa10a] transition"
-                          >
-                            <FiDownload />
-                            PDF
-                          </a>
-                        )}
-
-                        {inv.hosted_invoice_url && (
-                          <a
-                            href={inv.hosted_invoice_url}
-                            target="_blank"
-                            className="inline-flex items-center gap-1 text-gray-600 hover:text-[#3fa10a] transition"
-                          >
-                            <FiExternalLink />
-                            Ver online
-                          </a>
-                        )}
-                      </div>
                     </td>
                   </tr>
                 ))}

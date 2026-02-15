@@ -2,14 +2,16 @@
 
 import { useState } from "react";
 import { useUser } from "@/contexts/UserContext";
-import { requestPasswordReset } from "@/services/authService";
-import ModalPlanes from "../components/ModalPlanes";
+import {
+  requestPasswordReset,
+  updateNotificationPreferences,
+} from "@/services/authService";
+import ModalPlanes from "../components/ModalPlanesWompi";
+import CancelSubscriptionModal from "./components/CancelSubscriptionModal";
 import { useRouter } from "next/navigation";
-import { updateNotificationPreferences } from "@/services/authService";
 
 export default function ConfiguracionPage() {
-  const { user, refreshUser } = useUser();
-
+  const { user, refreshUser, token } = useUser();
   const router = useRouter();
 
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -17,20 +19,34 @@ export default function ConfiguracionPage() {
   const [sent, setSent] = useState(false);
   const [planesOpen, setPlanesOpen] = useState(false);
 
-  const prefs = user.notification_preferences;
+
+  const prefs = user?.notification_preferences ?? {};
 
   const [emailsPagos, setEmailsPagos] = useState(
-    prefs?.emails_pagos ?? true
+    prefs.emails_pagos ?? true
   );
   const [emailsCambiosPlan, setEmailsCambiosPlan] = useState(
-    prefs?.emails_cambios_plan ?? true
+    prefs.emails_cambios_plan ?? true
   );
   const [emailsNovedades, setEmailsNovedades] = useState(
-    prefs?.emails_novedades ?? false
+    prefs.emails_novedades ?? false
   );
 
   const [savingPrefs, setSavingPrefs] = useState(false);
   const [savedOk, setSavedOk] = useState(false);
+
+  const originalPrefs = {
+    emails_pagos: prefs.emails_pagos ?? true,
+    emails_cambios_plan: prefs.emails_cambios_plan ?? true,
+    emails_novedades: prefs.emails_novedades ?? false,
+  };
+
+  const hasChanges =
+    emailsPagos !== originalPrefs.emails_pagos ||
+    emailsCambiosPlan !== originalPrefs.emails_cambios_plan ||
+    emailsNovedades !== originalPrefs.emails_novedades;
+
+  const subscription = user?.subscription ?? null;
 
   if (!user) {
     return (
@@ -40,19 +56,6 @@ export default function ConfiguracionPage() {
     );
   }
 
-  const originalPrefs = {
-    emails_pagos: prefs?.emails_pagos ?? true,
-    emails_cambios_plan: prefs?.emails_cambios_plan ?? true,
-    emails_novedades: prefs?.emails_novedades ?? false
-  };
-
-  const hasChanges =
-    emailsPagos !== originalPrefs.emails_pagos ||
-    emailsCambiosPlan !== originalPrefs.emails_cambios_plan ||
-    emailsNovedades !== originalPrefs.emails_novedades;
-
-  const subscription = user.subscription;
-  const plan = subscription?.Plan;
 
   const handleSendReset = async () => {
     try {
@@ -65,29 +68,29 @@ export default function ConfiguracionPage() {
     }
   };
 
-    const handleSavePreferences = async () => {
+  const handleSavePreferences = async () => {
     try {
-        setSavingPrefs(true);
-
-        await updateNotificationPreferences({
+      setSavingPrefs(true);
+      await updateNotificationPreferences({
         emails_pagos: emailsPagos,
         emails_cambios_plan: emailsCambiosPlan,
-        emails_novedades: emailsNovedades
-        });
-
-        await refreshUser();
-        setSavedOk(true);
+        emails_novedades: emailsNovedades,
+      });
+      await refreshUser();
+      setSavedOk(true);
     } finally {
-        setSavingPrefs(false);
+      setSavingPrefs(false);
     }
-    };
+  };
 
 
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-6xl mx-auto px-4 py-8 mt-12 space-y-8">
         <header>
-          <h1 className="text-2xl font-bold text-gray-900">Configuración</h1>
+          <h1 className="text-2xl font-bold text-gray-900">
+            Configuración
+          </h1>
           <p className="text-sm text-gray-500 mt-1">
             Administra tu cuenta y preferencias
           </p>
@@ -105,12 +108,16 @@ export default function ConfiguracionPage() {
             <div className="p-6 space-y-4 text-sm">
               <div>
                 <p className="text-gray-500">Nombre</p>
-                <p className="font-medium text-gray-900">{user.name}</p>
+                <p className="font-medium text-gray-900">
+                  {user.name}
+                </p>
               </div>
 
               <div>
                 <p className="text-gray-500">Email</p>
-                <p className="font-medium text-gray-900">{user.email}</p>
+                <p className="font-medium text-gray-900">
+                  {user.email}
+                </p>
               </div>
 
               <div className="flex gap-3 pt-2">
@@ -133,39 +140,107 @@ export default function ConfiguracionPage() {
           <section className="bg-white rounded-2xl border border-gray-100 shadow-sm">
             <div className="px-6 py-4 border-b border-gray-100 flex justify-between">
               <div>
-                <h3 className="font-semibold text-gray-900">Suscripción</h3>
+                <h3 className="font-semibold text-gray-900">
+                  Suscripción
+                </h3>
                 <p className="text-sm text-gray-500 mt-1">
                   Plan y facturación
                 </p>
               </div>
 
-              {subscription?.status === "active" && (
+              {subscription?.status === "ACTIVE" && (
                 <span className="text-xs px-2 py-1 rounded-full bg-[#72eb15]/20 text-[#3fa10a] font-medium h-fit">
                   Activa
+                </span>
+              )}
+
+              {subscription?.status === "TRIAL" && (
+                <span className="text-xs px-2 py-1 rounded-full bg-yellow-100 text-yellow-800 font-medium h-fit">
+                  Prueba
+                </span>
+              )}
+
+              {subscription?.status === "PAST_DUE" && (
+                <span className="text-xs px-2 py-1 rounded-full bg-yellow-100 text-yellow-800 font-medium h-fit">
+                  Pago pendiente
+                </span>
+              )}
+
+              {subscription?.status === "FAILED" && (
+                <span className="text-xs px-2 py-1 rounded-full bg-red-100 text-red-700 font-medium h-fit">
+                  Pago fallido
+                </span>
+              )}
+
+              {subscription?.status === "EXPIRED" && (
+                <span className="text-xs px-2 py-1 rounded-full bg-gray-100 text-gray-600 font-medium h-fit">
+                  Expirada
+                </span>
+              )}
+
+              {subscription?.status === "CANCELED" && (
+                <span className="text-xs px-2 py-1 rounded-full bg-gray-100 text-gray-600 font-medium h-fit">
+                  Cancelada
                 </span>
               )}
             </div>
 
             <div className="p-6 space-y-4 text-sm">
-              {subscription && plan ? (
+              {subscription ? (
                 <>
                   <p>
-                    <strong>Plan:</strong> {plan.name}
+                    <strong>Estado:</strong>{" "}
+                    {subscription.status}
                   </p>
 
                   <p>
-                    <strong>Precio:</strong>{" "}
-                    ${Number(plan.price).toLocaleString("es-CO")}
+                    <strong>Precio actual:</strong>{" "}
+                    {(subscription.plan_price / 100).toLocaleString(
+                      "es-CO",
+                      {
+                        style: "currency",
+                        currency: subscription.currency,
+                        minimumFractionDigits: 0,
+                      }
+                    )}
                   </p>
 
-                  {subscription.ends_at && (
-                    <p>
-                      <strong>Finaliza:</strong>{" "}
-                      {new Date(subscription.ends_at).toLocaleDateString()}
+                  <p>
+                    <strong>Periodo actual:</strong>{" "}
+                    {new Date(
+                      subscription.current_period_start
+                    ).toLocaleDateString()}{" "}
+                    -{" "}
+                    {new Date(
+                      subscription.current_period_end
+                    ).toLocaleDateString()}
+                  </p>
+
+                  <p>
+                    <strong>Próximo cobro:</strong>{" "}
+                    {new Date(
+                      subscription.next_billing_date
+                    ).toLocaleDateString()}
+                  </p>
+
+                  {subscription.retry_count > 0 && (
+                    <p className="text-yellow-700">
+                      Reintentos de cobro:{" "}
+                      {subscription.retry_count}
                     </p>
                   )}
 
-                  <div className="flex gap-3 pt-2">
+                  {subscription.cancel_at_period_end &&
+                    subscription.current_period_end && (
+                      <p className="text-yellow-700">
+                        Tu suscripción se cancelará el{" "}
+                        {new Date(
+                          subscription.current_period_end
+                        ).toLocaleDateString()}
+                      </p>
+                    )}
+
+                  <div className="flex gap-3 pt-2 flex-wrap">
                     <button
                       onClick={() => setPlanesOpen(true)}
                       className="px-4 py-2 rounded-lg bg-[#3fa10a] text-white text-sm"
@@ -174,11 +249,17 @@ export default function ConfiguracionPage() {
                     </button>
 
                     <button
-                      onClick={() => router.push("/facturas")}
+                      onClick={() =>
+                        router.push("/facturas")
+                      }
                       className="px-4 py-2 rounded-lg border text-sm"
                     >
                       Ver facturas
                     </button>
+
+                   
+
+
                   </div>
                 </>
               ) : (
@@ -192,6 +273,7 @@ export default function ConfiguracionPage() {
             </div>
           </section>
         </div>
+
 
         <section className="bg-white rounded-2xl border border-gray-100 shadow-sm">
           <div className="px-6 py-4 border-b border-gray-100">
@@ -222,10 +304,7 @@ export default function ConfiguracionPage() {
                 setter: setEmailsNovedades
               }
             ].map((item) => (
-              <div
-                key={item.label}
-                className="flex items-center justify-between"
-              >
+              <div key={item.label} className="flex items-center justify-between">
                 <div>
                   <p className="font-medium text-gray-900">{item.label}</p>
                   <p className="text-xs text-gray-500">{item.desc}</p>
@@ -268,19 +347,23 @@ export default function ConfiguracionPage() {
         </section>
       </div>
 
+      <ModalPlanes
+        open={planesOpen}
+        onClose={() => setPlanesOpen(false)}
+      />
+
       {confirmOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-          <div className="bg-white max-w-sm w-full rounded-2xl p-6 space-y-4">
-            <h3 className="text-lg font-semibold text-gray-900">
-              ¿Cambiar contraseña?
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl">
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              Cambiar contraseña
             </h3>
 
-            <p className="text-sm text-gray-600">
-              Te enviaremos un enlace a tu correo para que puedas cambiar tu
-              contraseña de forma segura.
+            <p className="text-sm text-gray-500 mb-6">
+              Te enviaremos un correo con instrucciones para cambiar tu contraseña.
             </p>
 
-            <div className="flex justify-end gap-3 pt-4">
+            <div className="flex justify-end gap-3">
               <button
                 onClick={() => setConfirmOpen(false)}
                 className="px-4 py-2 rounded-lg border text-sm"
@@ -294,18 +377,15 @@ export default function ConfiguracionPage() {
                 disabled={sending}
                 className="px-4 py-2 rounded-lg bg-[#3fa10a] text-white text-sm"
               >
-                {sending ? "Enviando…" : "Enviar correo"}
+                {sending ? "Enviando..." : "Enviar correo"}
               </button>
             </div>
           </div>
         </div>
       )}
 
-      <ModalPlanes
-        open={planesOpen}
-        onClose={() => setPlanesOpen(false)}
-        currentSubscription={user.subscription}
-      />
+
     </div>
   );
 }
+
