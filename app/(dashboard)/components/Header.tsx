@@ -14,11 +14,12 @@ import {
 import { useRouter } from "next/navigation";
 import { useUser } from "@/contexts/UserContext";
 import ModalPlanes from "./ModalPlanesWompi";
+import { getMe } from "@/services/authService";
 
-const GRACE_PERIOD_DAYS = 5;
+const GRACE_PERIOD_DAYS = 1;
 
 function isInGracePeriod(subscription: any) {
-  if (!subscription || subscription.status !== "past_due") return false;
+  if (!subscription || subscription.status !== "PAST_DUE") return false;
   const updatedAt = new Date(subscription.updatedAt);
   const limit = new Date(updatedAt);
   limit.setDate(limit.getDate() + GRACE_PERIOD_DAYS);
@@ -37,6 +38,16 @@ export default function Header({
   const [openPlanes, setOpenPlanes] = useState(false);
 
   const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        await getMe();
+        await refreshUser();
+      } catch (error) {}
+    };
+    fetchUser();
+  }, []);
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -59,9 +70,7 @@ export default function Header({
     setOpenPlanes(true);
   };
 
-
-
- const subscription = user?.subscription;
+  const subscription = user?.subscription;
   const showGraceBanner = isInGracePeriod(subscription);
 
   const statusConfig: Record<
@@ -100,9 +109,7 @@ export default function Header({
     },
   };
 
-  const planUI = subscription
-    ? statusConfig[subscription.status]
-    : null;
+  const planUI = subscription ? statusConfig[subscription.status] : null;
 
   return (
     <>
@@ -114,7 +121,6 @@ export default function Header({
               Tu último pago falló. Estás en período de gracia.
             </span>
           </div>
-          
         </div>
       )}
 
@@ -139,7 +145,7 @@ export default function Header({
               <planUI.Icon className="text-lg shrink-0" />
               <span className="leading-none whitespace-nowrap">
                 {planUI.label}
-                {subscription.status === "active" &&
+                {subscription.status === "ACTIVE" &&
                 subscription.Plan?.name
                   ? ` · ${subscription.Plan.name}`
                   : ""}
@@ -185,8 +191,6 @@ export default function Header({
           )}
         </div>
       </header>
-
-    
 
       <ModalPlanes
         open={openPlanes}
