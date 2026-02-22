@@ -140,10 +140,10 @@ export default function Header({
           {subscription && planUI && (
             <button
               onClick={handleOpenPlanes}
-              className={`flex items-center gap-2.5 px-5 py-2.5 rounded-xl font-semibold text-base ${planUI.styles}`}
+              className={`flex items-center justify-center md:justify-start gap-2.5 px-3 md:px-5 py-2.5 rounded-xl font-semibold text-base ${planUI.styles}`}
             >
               <planUI.Icon className="text-lg shrink-0" />
-              <span className="leading-none whitespace-nowrap">
+              <span className="hidden md:inline leading-none whitespace-nowrap">
                 {planUI.label}
                 {subscription.status === "ACTIVE" &&
                 subscription.Plan?.name
@@ -157,10 +157,12 @@ export default function Header({
         <div className="relative" ref={ref}>
           <button
             onClick={() => setOpenMenu(!openMenu)}
-            className="flex items-center gap-2.5 px-5 py-2.5 rounded-xl bg-[#72eb15]/15 text-[#3fa10a] font-semibold text-base"
+            className="flex items-center justify-center md:justify-start gap-2.5 px-3 md:px-5 py-2.5 rounded-xl bg-[#72eb15]/15 text-[#3fa10a] font-semibold text-base"
           >
             <FiUser className="text-lg" />
-            Mi cuenta
+            <span className="hidden md:inline">
+              Mi cuenta
+            </span>
           </button>
 
           {openMenu && user && (
