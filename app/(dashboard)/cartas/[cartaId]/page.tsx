@@ -118,10 +118,12 @@ export default function SeccionesCartaPage() {
         <div className="flex items-center gap-3">
           <button
             onClick={() => setOpenOrdenarModal(true)}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white shadow text-gray-700 hover:bg-gray-100"
+            className="inline-flex items-center gap-2 px-3 md:px-4 py-2 rounded-xl bg-white shadow text-gray-700 hover:bg-gray-100"
           >
             <FiMove />
-            Ordenar secciones
+            <span className="hidden md:inline">
+              Ordenar secciones
+            </span>
           </button>
 
           <button
@@ -129,10 +131,12 @@ export default function SeccionesCartaPage() {
               setSeccionParaEditar(null);
               setOpenModal(true);
             }}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#72eb15]/20 text-[#3fa10a] font-semibold hover:bg-[#72eb15]/30"
+            className="inline-flex items-center gap-2 px-3 md:px-4 py-2 rounded-xl bg-[#72eb15]/20 text-[#3fa10a] font-semibold hover:bg-[#72eb15]/30"
           >
             <FiPlus />
-            Nueva sección
+            <span className="hidden md:inline">
+              Nueva sección
+            </span>
           </button>
         </div>
       </div>
@@ -159,7 +163,9 @@ export default function SeccionesCartaPage() {
                   className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 text-sm"
                 >
                   <FiEdit2 />
-                  Editar sección
+                  <span className="hidden md:inline">
+                    Editar sección
+                  </span>
                 </button>
 
                 <button
@@ -171,7 +177,9 @@ export default function SeccionesCartaPage() {
                   className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-green-50 text-green-700 hover:bg-green-100 text-sm"
                 >
                   <FiPlus />
-                  Añadir producto
+                  <span className="hidden md:inline">
+                    Añadir producto
+                  </span>
                 </button>
 
                 <button
@@ -252,7 +260,6 @@ export default function SeccionesCartaPage() {
           setOpenUpload(true);
         }}
       />
-
 
       <ModalPreviewImagenProducto
         open={openPreview}
