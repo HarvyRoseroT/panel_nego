@@ -345,6 +345,57 @@ export default function ConfiguracionPage() {
             </div>
           </div>
         </section>
+
+        <section className="bg-white rounded-2xl border border-gray-100 shadow-sm">
+          <div className="px-6 py-4 border-b border-gray-100">
+            <h3 className="font-semibold text-gray-900">Legal</h3>
+            <p className="text-sm text-gray-500 mt-1">
+              Documentos legales y políticas del servicio
+            </p>
+          </div>
+
+          <div className="p-6">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+
+              <button
+                onClick={() => router.push("/legal/privacidad")}
+                className="group rounded-xl border border-gray-200 p-4 text-left transition hover:border-[#3fa10a] hover:shadow-md"
+              >
+                <p className="font-medium text-gray-900 group-hover:text-[#3fa10a] transition">
+                  Política de Privacidad
+                </p>
+                <p className="text-xs text-gray-500 mt-1">
+                  Cómo protegemos y tratamos tus datos.
+                </p>
+              </button>
+
+              <button
+                onClick={() => router.push("/legal/terminos")}
+                className="group rounded-xl border border-gray-200 p-4 text-left transition hover:border-[#3fa10a] hover:shadow-md"
+              >
+                <p className="font-medium text-gray-900 group-hover:text-[#3fa10a] transition">
+                  Términos y Condiciones
+                </p>
+                <p className="text-xs text-gray-500 mt-1">
+                  Reglas y condiciones de uso de la plataforma.
+                </p>
+              </button>
+
+              <button
+                onClick={() => router.push("/legal/pagos")}
+                className="group rounded-xl border border-gray-200 p-4 text-left transition hover:border-[#3fa10a] hover:shadow-md"
+              >
+                <p className="font-medium text-gray-900 group-hover:text-[#3fa10a] transition">
+                  Política de Pagos
+                </p>
+                <p className="text-xs text-gray-500 mt-1">
+                  Información sobre planes y facturación.
+                </p>
+              </button>
+
+            </div>
+          </div>
+        </section>
       </div>
 
       <ModalPlanes
