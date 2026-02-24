@@ -206,6 +206,21 @@ export default function EstablecimientoForm({
       </Field>
 
       <Field label="Ubicación en el mapa">
+        <div className="bg-blue-50 border border-blue-200 text-blue-800 text-sm p-4 rounded-xl mb-4 space-y-2">
+          <p className="font-medium">
+            Ajusta tu ubicación con precisión
+          </p>
+          <p>
+            Arrastra el marcador hasta la ubicación exacta de tu establecimiento.
+            Puedes usar el scroll y las herramientas del mapa para acercar o alejar.
+          </p>
+          <p>
+            Esta ubicación es clave: se te asignará un radio aproximado de 5 km.
+            Los usuarios que estén dentro de ese rango podrán ver tu establecimiento
+            en nuestra app y recibir recomendaciones y domicilios basadas en cercanía.
+          </p>
+        </div>
+
         <LocationPicker
           pais={data.pais}
           value={{ lat: data.lat, lng: data.lng }}
@@ -235,6 +250,33 @@ export default function EstablecimientoForm({
 
       {data.domicilio_activo && (
         <Field label="Contacto / WhatsApp (incluye código de país)">
+          
+          <div className="bg-amber-50 border border-amber-200 text-amber-900 text-sm p-4 rounded-xl mb-4 space-y-2">
+            <p className="font-semibold flex items-center gap-2">
+              Número receptor oficial de pedidos
+            </p>
+
+            <p>
+              El teléfono que registres aquí será el canal oficial donde se enviarán
+              automáticamente los pedidos a domicilio generados desde nuestra app.
+            </p>
+
+            <p>
+              Cada vez que un cliente confirme un pedido, recibirás automáticamente en este número el detalle completo vía WhatsApp en tiempo real. Desde allí podrás gestionar toda la información del pedido, incluyendo ubicación de entrega y método de pago seleccionado.
+            </p>
+
+            <p>
+              Es fundamental que el número esté correcto, activo y disponible para
+              responder rápidamente, ya que cualquier retraso puede afectar la
+              experiencia del cliente.
+            </p>
+
+            <p className="font-medium">
+              Si actualmente no ofreces servicio a domicilio, puedes desactivar la
+              opción “Domicilio disponible” y este campo dejará de ser obligatorio.
+            </p>
+          </div>
+
           <input
             value={data.telefono_contacto ?? ""}
             onChange={(e) => handleTelefonoChange(e.target.value)}
@@ -243,6 +285,7 @@ export default function EstablecimientoForm({
             placeholder="+573001234567"
             required
           />
+
           {errorTelefono && (
             <p className="text-sm text-red-500 mt-1">{errorTelefono}</p>
           )}
