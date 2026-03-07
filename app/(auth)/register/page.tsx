@@ -14,6 +14,7 @@ import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { registerRequest, isAuthenticated } from "@/services/authService";
+import { validateReferralCode } from "@/services/partnerService";
 
 const PRIMARY = "#A3E635";
 const PRIMARY_DARK = "#365314";
@@ -24,6 +25,10 @@ export default function RegisterPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [manualReferral, setManualReferral] = useState("");
+  const [referralStatus, setReferralStatus] = useState<
+    "idle" | "checking" | "valid" | "invalid"
+  >("idle");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -33,6 +38,25 @@ export default function RegisterPage() {
       router.replace("/dashboard");
     }
   }, [router]);
+
+  useEffect(() => {
+    if (!manualReferral) {
+      setReferralStatus("idle");
+      return;
+    }
+
+    const timeout = setTimeout(async () => {
+      try {
+        setReferralStatus("checking");
+        const res = await validateReferralCode(manualReferral);
+        setReferralStatus(res.valid ? "valid" : "invalid");
+      } catch {
+        setReferralStatus("invalid");
+      }
+    }, 500);
+
+    return () => clearTimeout(timeout);
+  }, [manualReferral]);
 
   const rules = {
     length: password.length >= 8,
@@ -55,33 +79,74 @@ export default function RegisterPage() {
       return;
     }
 
+    if (manualReferral && referralStatus !== "valid") {
+      setError("Código de referido inválido");
+      return;
+    }
+
     setLoading(true);
 
     try {
-      const res = await registerRequest(name, email, password);
-      setSuccess(res.message || "Revisa tu correo para verificar tu cuenta");
+      const referralToSend = manualReferral.trim() || null;
+
+      const res = await registerRequest(
+        name,
+        email,
+        password,
+        referralToSend
+      );
+
+      setSuccess(
+        res.message || "Revisa tu correo para verificar tu cuenta"
+      );
     } catch (err: any) {
-      setError(err?.response?.data?.message || "Error al registrar usuario");
+      setError(
+        err?.response?.data?.message || "Error al registrar usuario"
+      );
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <Box minHeight="100vh" display="flex" justifyContent="center" alignItems="center" px={2}>
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
+    <Box
+      minHeight="100vh"
+      display="flex"
+      justifyContent="center"
+      alignItems="center"
+      px={2}
+    >
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+      >
         <Paper elevation={6} sx={{ p: 4, width: 420, borderRadius: 3 }}>
-          <Typography variant="h5" textAlign="center" fontWeight={700} color={PRIMARY_DARK}>
+          <Typography
+            variant="h5"
+            textAlign="center"
+            fontWeight={700}
+            color={PRIMARY_DARK}
+          >
             Crear cuenta
           </Typography>
 
-          <Typography variant="body2" textAlign="center" color="text.secondary" mb={3}>
+          <Typography
+            variant="body2"
+            textAlign="center"
+            color="text.secondary"
+            mb={3}
+          >
             Regístrate para comenzar
           </Typography>
 
           {success ? (
             <>
-              <Typography color={PRIMARY_DARK} textAlign="center" fontWeight={600}>
+              <Typography
+                color={PRIMARY_DARK}
+                textAlign="center"
+                fontWeight={600}
+              >
                 {success}
               </Typography>
 
@@ -131,6 +196,34 @@ export default function RegisterPage() {
                 required
               />
 
+              <TextField
+                label="Código de referido (opcional)"
+                fullWidth
+                margin="normal"
+                value={manualReferral}
+                onChange={(e) =>
+                  setManualReferral(e.target.value.toUpperCase())
+                }
+              />
+
+              {referralStatus === "checking" && (
+                <Typography fontSize={13} color="text.secondary">
+                  Verificando código...
+                </Typography>
+              )}
+
+              {referralStatus === "valid" && (
+                <Typography fontSize={13} color="#166534" fontWeight={600}>
+                  ✔ Código válido — obtienes 30 días de prueba
+                </Typography>
+              )}
+
+              {referralStatus === "invalid" && (
+                <Typography fontSize={13} color="error">
+                  Código de referido inválido
+                </Typography>
+              )}
+
               <Box mt={1.5}>
                 <LinearProgress
                   variant="determinate"
@@ -141,15 +234,23 @@ export default function RegisterPage() {
                     backgroundColor: "#e5e7eb",
                     "& .MuiLinearProgress-bar": {
                       backgroundColor:
-                        strength <= 2 ? "#ef4444" :
-                        strength === 3 ? "#f59e0b" :
-                        strength === 4 ? "#84cc16" :
-                        PRIMARY,
+                        strength <= 2
+                          ? "#ef4444"
+                          : strength === 3
+                          ? "#f59e0b"
+                          : strength === 4
+                          ? "#84cc16"
+                          : PRIMARY,
                     },
                   }}
                 />
 
-                <Box mt={1.5} display="grid" gap={0.5}>
+                <Box
+                  mt={1.5}
+                  display="grid"
+                  gap={0.5}
+                  gridTemplateColumns={{ xs: "1fr", sm: "1fr 1fr" }}
+                >
                   <Rule ok={rules.length} text="Mínimo 8 caracteres" />
                   <Rule ok={rules.uppercase} text="Una letra mayúscula" />
                   <Rule ok={rules.lowercase} text="Una letra minúscula" />
@@ -179,7 +280,10 @@ export default function RegisterPage() {
                 }}
               >
                 {loading ? (
-                  <CircularProgress size={24} sx={{ color: PRIMARY_DARK }} />
+                  <CircularProgress
+                    size={24}
+                    sx={{ color: PRIMARY_DARK }}
+                  />
                 ) : (
                   "Crear cuenta"
                 )}
@@ -189,7 +293,11 @@ export default function RegisterPage() {
 
           <Divider sx={{ my: 3 }} />
 
-          <Typography variant="body2" textAlign="center" color="text.secondary">
+          <Typography
+            variant="body2"
+            textAlign="center"
+            color="text.secondary"
+          >
             ¿Ya tienes cuenta?
           </Typography>
 

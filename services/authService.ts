@@ -29,6 +29,7 @@ export interface AuthUser {
   id: number;
   name: string;
   email: string;
+  role: "superadmin" | "client" | "partner";
   stripe_customer_id?: string | null;
   subscription?: Subscription | null;
   notification_preferences?: NotificationPreferences;
@@ -83,12 +84,14 @@ export async function getMe(): Promise<AuthUser> {
 export async function registerRequest(
   name: string,
   email: string,
-  password: string
+  password: string,
+  referralCode?: string | null
 ): Promise<RegisterResponse> {
   const { data } = await api.post("/auth/register", {
     name,
     email,
     password,
+    referralCode,
   });
 
   return data;

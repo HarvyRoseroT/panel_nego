@@ -65,7 +65,13 @@ export default function LoginPage() {
     try {
       const data = await loginRequest(values.email, values.password);
       login(data.token, data.user);
-      router.replace("/dashboard");
+      if (data.user.role === "superadmin") {
+        router.replace("/admin");
+      } else if (data.user.role === "partner") {
+        router.replace("/partner");
+      } else {
+        router.replace("/dashboard");
+      }
     } catch (err: any) {
       const message = err?.response?.data?.message;
 

@@ -13,12 +13,34 @@ export default function DashboardLayout({
 }) {
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [checking, setChecking] = useState(true);
 
   useEffect(() => {
-    if (!isAuthenticated()) {
-      router.replace("/login");
-    }
+    const validateUser = () => {
+      if (!isAuthenticated()) {
+        router.replace("/login");
+        return;
+      }
+
+      const user = JSON.parse(localStorage.getItem("user") || "{}");
+
+      if (user.role === "superadmin") {
+        router.replace("/admin");
+        return;
+      }
+
+      if (user.role === "partner") { 
+        router.replace("/partner"); 
+        return; 
+      }
+
+      setChecking(false);
+    };
+
+    validateUser();
   }, [router]);
+
+  if (checking) return null;
 
   return (
     <div className="flex h-screen bg-gray-100 overflow-hidden">
