@@ -70,12 +70,12 @@ function SortableItem({
 
       <p
         onClick={() => onEdit(producto)}
-        className="flex-1 text-sm font-medium text-gray-700 cursor-pointer truncate"
+        className="flex-1 min-w-0 text-sm font-medium text-gray-700 cursor-pointer line-clamp-2"
       >
         {producto.nombre}
       </p>
 
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 shrink-0">
         <button
           onClick={() => onPreview(producto)}
           className="p-1 rounded hover:bg-gray-200 text-gray-500"
