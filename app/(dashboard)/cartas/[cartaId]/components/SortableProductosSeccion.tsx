@@ -48,7 +48,7 @@ function SortableItem({
       <button
         {...attributes}
         {...listeners}
-        className="text-gray-400 hover:text-gray-600 cursor-grab"
+        className="hidden md:flex text-gray-400 hover:text-gray-600 cursor-grab"
       >
         <FiMove />
       </button>
