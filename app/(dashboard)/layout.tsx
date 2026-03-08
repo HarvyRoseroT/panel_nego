@@ -56,7 +56,7 @@ export default function DashboardLayout({
       <div className="flex flex-col flex-1 ml-0 md:ml-64">
         <Header onToggleSidebar={() => setSidebarOpen(true)} />
 
-        <main className="flex-1 overflow-y-auto pt-16 p-6 max-w-7xl w-full mx-auto">
+        <main className="flex-1 overflow-y-auto pt-16 py-6 px-0 md:px-6 max-w-7xl w-full mx-auto">
           {children}
         </main>
       </div>
