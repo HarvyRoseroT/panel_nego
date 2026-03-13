@@ -1,5 +1,7 @@
 import api from "@/services/api";
 
+export type TipoProducto = "food" | "clothing";
+
 export interface Producto {
   id: number;
   nombre: string;
@@ -9,7 +11,16 @@ export interface Producto {
   activo: boolean;
   seccion_id: number;
   establecimiento_id: number;
+
+  marca?: string | null;
+  talla?: string | null;
+  color?: string | null;
+  sku?: string | null;
+  stock?: number | null;
+  tipo_producto: TipoProducto;
+
   imagen_url?: string | null;
+
   createdAt: string;
   updatedAt: string;
 }
@@ -21,6 +32,13 @@ export async function createProducto(
     precio?: number;
     seccion_id: number;
     activo?: boolean;
+
+    marca?: string;
+    talla?: string;
+    color?: string;
+    sku?: string;
+    stock?: number;
+    tipo_producto?: TipoProducto;
   },
   token: string
 ): Promise<Producto> {
@@ -62,7 +80,6 @@ export async function getProductosByEstablecimiento(
   return data;
 }
 
-
 export async function getProductoById(
   id: number,
   token: string
@@ -83,6 +100,13 @@ export async function updateProducto(
     descripcion?: string;
     precio?: number;
     activo?: boolean;
+
+    marca?: string;
+    talla?: string;
+    color?: string;
+    sku?: string;
+    stock?: number;
+    tipo_producto?: TipoProducto;
   },
   token: string
 ): Promise<Producto> {

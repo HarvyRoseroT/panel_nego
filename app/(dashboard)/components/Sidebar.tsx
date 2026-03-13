@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 import {
   FiGrid,
   FiHome,
@@ -14,17 +15,6 @@ import {
   FiHelpCircle
 } from "react-icons/fi";
 
-const items = [
-  { label: "Inicio", href: "/dashboard", icon: FiGrid },
-  { label: "Establecimiento", href: "/establecimiento", icon: FiHome },
-  { label: "Cartas", href: "/cartas", icon: FiBookOpen },
-  { label: "Productos", href: "/productos", icon: FiBox },
-  { label: "QR", href: "/qr", icon: FiShare2 },
-  { label: "Facturas", href: "/facturas", icon: FiFileText },
-  { label: "Soporte", href: "/soporte", icon: FiHelpCircle },
-  { label: "Configuración", href: "/configuracion", icon: FiSettings },
-];
-
 export default function Sidebar({
   open,
   onClose,
@@ -33,6 +23,43 @@ export default function Sidebar({
   onClose: () => void;
 }) {
   const pathname = usePathname();
+  const [tipo, setTipo] = useState<string | null>(null);
+
+  const loadFromStorage = () => {
+    const saved = localStorage.getItem("establecimiento");
+    if (!saved) return;
+
+    const est = JSON.parse(saved);
+    setTipo(est.tipo_establecimiento);
+  };
+
+  useEffect(() => {
+    loadFromStorage();
+
+    const handler = () => {
+      loadFromStorage();
+    };
+
+    window.addEventListener("establecimientoUpdated", handler);
+
+    return () =>
+      window.removeEventListener("establecimientoUpdated", handler);
+  }, []);
+
+  const items = [
+    { label: "Inicio", href: "/dashboard", icon: FiGrid },
+    { label: "Establecimiento", href: "/establecimiento", icon: FiHome },
+    {
+      label: tipo === "clothing_store" ? "Categorías" : "Cartas",
+      href: "/cartas",
+      icon: FiBookOpen
+    },
+    { label: "Productos", href: "/productos", icon: FiBox },
+    { label: "QR", href: "/qr", icon: FiShare2 },
+    { label: "Facturas", href: "/facturas", icon: FiFileText },
+    { label: "Soporte", href: "/soporte", icon: FiHelpCircle },
+    { label: "Configuración", href: "/configuracion", icon: FiSettings },
+  ];
 
   return (
     <aside

@@ -1,5 +1,12 @@
 import api from "@/services/api";
 
+export type TipoEstablecimiento =
+  | "restaurant"
+  | "cafe"
+  | "dark_kitchen"
+  | "bar"
+  | "clothing_store";
+
 export interface Establecimiento {
   id: number;
   user_id: number;
@@ -16,6 +23,7 @@ export interface Establecimiento {
   imagen_ubicacion_url: string | null;
   activo: boolean;
   domicilio_activo: boolean;
+  tipo_establecimiento: TipoEstablecimiento;
   createdAt: string;
   updatedAt: string;
 }
@@ -31,6 +39,7 @@ export type EstablecimientoPayload = {
   lng: number | null;
   activo: boolean;
   domicilio_activo: boolean;
+  tipo_establecimiento: TipoEstablecimiento;
 };
 
 export async function createEstablecimiento(

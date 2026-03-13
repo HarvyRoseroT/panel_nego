@@ -15,6 +15,9 @@ import type { Establecimiento } from "@/services/establecimientoService";
 export default function CartasPage() {
   const [establecimientoId, setEstablecimientoId] =
     useState<number | null>(null);
+
+  const [tipo, setTipo] = useState<string | null>(null);
+
   const [cartas, setCartas] = useState<Carta[]>([]);
   const [loading, setLoading] = useState(true);
   const [openCreateModal, setOpenCreateModal] = useState(false);
@@ -40,6 +43,7 @@ export default function CartasPage() {
         }
 
         setEstablecimientoId(establecimiento.id);
+        setTipo(establecimiento.tipo_establecimiento);
 
         const cartasData = await getCartasByEstablecimiento(
           establecimiento.id,
@@ -54,6 +58,8 @@ export default function CartasPage() {
 
     fetchData();
   }, []);
+
+  const esTienda = tipo === "clothing_store";
 
   if (loading) {
     return (
@@ -74,7 +80,7 @@ export default function CartasPage() {
             Aún no tienes un establecimiento
           </h2>
           <p className="mt-2 text-sm text-gray-500">
-            Para crear y gestionar cartas, primero debes registrar tu negocio.
+            Para crear y gestionar {esTienda ? "categorías" : "cartas"}, primero debes registrar tu negocio.
           </p>
           <button
             onClick={() => (window.location.href = "/establecimiento")}
@@ -92,9 +98,12 @@ export default function CartasPage() {
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800">Cartas</h1>
+          <h1 className="text-2xl font-bold text-gray-800">
+            {esTienda ? "Categorías" : "Cartas"}
+          </h1>
+
           <p className="text-sm text-gray-500">
-            Gestiona las cartas de tu establecimiento
+            Gestiona las {esTienda ? "categorías" : "cartas"} de tu establecimiento
           </p>
         </div>
 
@@ -103,7 +112,7 @@ export default function CartasPage() {
           className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#72eb15]/15 text-[#3fa10a] font-semibold hover:bg-[#72eb15]/25 transition"
         >
           <FiPlus />
-          Nueva carta
+          {esTienda ? "Nueva categoría" : "Nueva carta"}
         </button>
       </div>
 
@@ -121,6 +130,7 @@ export default function CartasPage() {
           setEditingCarta(null);
         }}
         establecimientoId={establecimientoId}
+        tipoEstablecimiento={tipo}
         carta={editingCarta}
         onCreated={(carta) =>
           setCartas((prev) => [...prev, carta])

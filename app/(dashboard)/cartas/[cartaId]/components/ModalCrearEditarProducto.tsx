@@ -15,6 +15,9 @@ interface Props {
   onSuccess?: (producto: Producto) => void;
 }
 
+const tallasRopa = ["XS","S","M","L","XL","XXL","AJUSTABLE"];
+const tallasPantalon = ["28","30","32","34","36","38","40","42","AJUSTABLE"];
+const tallasZapato = ["35","36","37","38","39","40","41","42","43","44","AJUSTABLE"];
 
 export default function ModalCrearEditarProducto({
   open,
@@ -23,78 +26,83 @@ export default function ModalCrearEditarProducto({
   onClose,
   onSuccess,
 }: Props) {
-  const [nombre, setNombre] = useState("");
-  const [descripcion, setDescripcion] = useState("");
-  const [precio, setPrecio] = useState<string>("");
-  const [activo, setActivo] = useState(true);
-  const [errors, setErrors] = useState<{ nombre?: string; precio?: string }>({});
+  const [nombre,setNombre] = useState("");
+  const [precio,setPrecio] = useState("");
+  const [marca,setMarca] = useState("");
+  const [talla,setTalla] = useState("");
+  const [activo,setActivo] = useState(true);
+  const [errors,setErrors] = useState<{nombre?:string;precio?:string}>({});
 
-    useEffect(() => {
-    if (!open) return;
+  useEffect(()=>{
+    if(!open) return;
 
-    if (producto) {
-        setNombre(producto.nombre);
-        setDescripcion(producto.descripcion || "");
-        setPrecio(String(producto.precio));
-        setActivo(producto.activo);
-    } else {
-        setNombre("");
-        setDescripcion("");
-        setPrecio("");
-        setActivo(true);
+    if(producto){
+      setNombre(producto.nombre);
+      setPrecio(producto.precio ? String(producto.precio) : "");
+      setMarca(producto.marca || "");
+      setTalla(producto.talla || "");
+      setActivo(producto.activo);
+    }else{
+      setNombre("");
+      setPrecio("");
+      setMarca("");
+      setTalla("");
+      setActivo(true);
     }
 
     setErrors({});
-    }, [producto, open]);
+  },[producto,open]);
 
+  if(!open || !seccion) return null;
 
-  if (!open || !seccion) return null;
+  const validate=()=>{
+    const newErrors:{nombre?:string;precio?:string}={};
 
-  const validate = () => {
-    const newErrors: { nombre?: string; precio?: string } = {};
-
-    if (!nombre.trim()) {
-      newErrors.nombre = "El nombre es obligatorio";
+    if(!nombre.trim()){
+      newErrors.nombre="El nombre es obligatorio";
     }
 
-    if (!precio.trim()) {
-      newErrors.precio = "El precio es obligatorio";
-    } else if (isNaN(Number(precio))) {
-      newErrors.precio = "El precio debe ser un número";
+    if(!precio.trim()){
+      newErrors.precio="El precio es obligatorio";
+    }else if(isNaN(Number(precio))){
+      newErrors.precio="El precio debe ser numérico";
     }
 
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    return Object.keys(newErrors).length===0;
   };
 
-  const handleSave = async () => {
-    if (!validate()) return;
+  const generateSku=()=>{
+    const base = nombre.replace(/\s+/g,"").substring(0,4).toUpperCase();
+    const rand = Math.floor(1000 + Math.random()*9000);
+    return `${base}-${rand}`;
+  };
+
+  const handleSave=async()=>{
+    if(!validate()) return;
 
     const token = getStoredToken();
-    if (!token) return;
+    if(!token) return;
 
-    const precioNumber = Number(precio);
-    let savedProducto: Producto;
+    const payload={
+      nombre,
+      descripcion:"",
+      precio:Number(precio),
+      marca:marca || undefined,
+      talla:talla || undefined,
+      sku:generateSku(),
+      activo
+    };
 
-    if (producto) {
-      savedProducto = await updateProducto(
-        producto.id,
+    let savedProducto:Producto;
+
+    if(producto){
+      savedProducto=await updateProducto(producto.id,payload,token);
+    }else{
+      savedProducto=await createProducto(
         {
-          nombre,
-          descripcion,
-          precio: precioNumber,
-          activo,
-        },
-        token
-      );
-    } else {
-      savedProducto = await createProducto(
-        {
-          nombre,
-          descripcion,
-          precio: precioNumber,
-          seccion_id: seccion.id,
-          activo,
+          ...payload,
+          seccion_id:seccion.id
         },
         token
       );
@@ -104,69 +112,109 @@ export default function ModalCrearEditarProducto({
     onClose();
   };
 
+  const sizeButton=(value:string)=>(
+    <button
+      key={value}
+      type="button"
+      onClick={()=>setTalla(value)}
+      className={`px-3 py-2 rounded-lg border text-sm transition
+      ${talla===value
+        ? "bg-[#72eb15]/20 border-[#72eb15] text-[#3fa10a] font-semibold"
+        : "bg-white border-gray-200 hover:bg-gray-50"}`}
+    >
+      {value}
+    </button>
+  );
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
-      <div className="w-full max-w-md rounded-2xl bg-white shadow-2xl">
+  return(
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+      <div className="w-full max-w-4xl rounded-2xl bg-white shadow-2xl max-h-[90vh] overflow-y-auto">
+
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
           <h2 className="font-semibold text-lg text-gray-800">
             {producto ? "Editar producto" : "Crear producto"}
           </h2>
-          <button onClick={onClose} className="p-1 rounded hover:bg-gray-100">
-            <FiX />
+
+          <button onClick={onClose} className="p-2 rounded-lg hover:bg-gray-100">
+            <FiX/>
           </button>
         </div>
 
-        <div className="p-6 space-y-4">
+        <div className="p-6 space-y-6">
+
           <div>
             <label className="text-xs text-gray-500">Nombre *</label>
             <input
-              className={`mt-1 w-full rounded-lg bg-gray-50 border px-3 py-2 text-sm focus:outline-none ${
-                errors.nombre ? "border-red-400" : "border-gray-200"
-              }`}
               value={nombre}
-              onChange={(e) => setNombre(e.target.value)}
+              onChange={(e)=>setNombre(e.target.value)}
+              placeholder="Ej: Camiseta Nike Air"
+              className={`mt-1 w-full rounded-lg bg-gray-50 border px-3 py-2 text-sm focus:outline-none
+              ${errors.nombre ? "border-red-400":"border-gray-200"}`}
             />
-            {errors.nombre && (
-              <p className="text-xs text-red-500 mt-1">{errors.nombre}</p>
-            )}
+            {errors.nombre && <p className="text-xs text-red-500 mt-1">{errors.nombre}</p>}
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+            <div>
+              <label className="text-xs text-gray-500">Precio *</label>
+              <div className="relative mt-1">
+                <span className="absolute left-3 top-2 text-gray-500 text-sm">$</span>
+                <input
+                  type="text"
+                  value={precio}
+                  onChange={(e)=>setPrecio(e.target.value)}
+                  placeholder="120000"
+                  className={`w-full pl-7 rounded-lg border px-3 py-2 text-sm
+                  ${errors.precio ? "border-red-400":"border-gray-200"}`}
+                />
+              </div>
+              {errors.precio && <p className="text-xs text-red-500 mt-1">{errors.precio}</p>}
+            </div>
+
+            <div>
+              <label className="text-xs text-gray-500">Marca</label>
+              <input
+                value={marca}
+                onChange={(e)=>setMarca(e.target.value)}
+                placeholder="Ej: Nike"
+                className="mt-1 w-full rounded-lg bg-gray-50 border border-gray-200 px-3 py-2 text-sm"
+              />
+            </div>
+
           </div>
 
           <div>
-            <label className="text-xs text-gray-500">Descripción</label>
-            <textarea
-              className="mt-1 w-full rounded-lg bg-gray-50 border border-gray-200 px-3 py-2 text-sm resize-none focus:outline-none"
-              rows={3}
-              value={descripcion}
-              onChange={(e) => setDescripcion(e.target.value)}
-            />
+            <label className="text-xs text-gray-500">Tallas de camisa / saco</label>
+            <div className="flex flex-wrap gap-2 mt-2">
+              {tallasRopa.map(sizeButton)}
+            </div>
           </div>
 
           <div>
-            <label className="text-xs text-gray-500">Precio *</label>
-            <input
-              type="text"
-              className={`mt-1 w-full rounded-lg bg-white border px-3 py-2 text-sm focus:outline-none ${
-                errors.precio ? "border-red-400" : "border-gray-200"
-              }`}
-              value={precio}
-              onChange={(e) => setPrecio(e.target.value)}
-              placeholder="Ej: 12.50"
-            />
-            {errors.precio && (
-              <p className="text-xs text-red-500 mt-1">{errors.precio}</p>
-            )}
+            <label className="text-xs text-gray-500">Tallas de pantalón</label>
+            <div className="flex flex-wrap gap-2 mt-2">
+              {tallasPantalon.map(sizeButton)}
+            </div>
+          </div>
+
+          <div>
+            <label className="text-xs text-gray-500">Tallas de zapato</label>
+            <div className="flex flex-wrap gap-2 mt-2">
+              {tallasZapato.map(sizeButton)}
+            </div>
           </div>
 
           <label className="flex items-center gap-3 text-sm text-gray-600">
             <input
               type="checkbox"
               checked={activo}
-              onChange={(e) => setActivo(e.target.checked)}
+              onChange={(e)=>setActivo(e.target.checked)}
               className="h-4 w-4 rounded border-gray-300"
             />
             Producto activo
           </label>
+
         </div>
 
         <div className="flex justify-end gap-2 px-6 py-4 border-t border-gray-100">
@@ -176,13 +224,15 @@ export default function ModalCrearEditarProducto({
           >
             Cancelar
           </button>
+
           <button
             onClick={handleSave}
-            className="px-4 py-2 rounded-lg bg-[#72eb15]/20 text-[#3fa10a] text-sm font-semibold hover:bg-[#72eb15]/30"
+            className="px-5 py-2 rounded-lg bg-[#72eb15]/20 text-[#3fa10a] font-semibold text-sm hover:bg-[#72eb15]/30"
           >
             Guardar
           </button>
         </div>
+
       </div>
     </div>
   );

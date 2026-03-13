@@ -8,6 +8,13 @@ import {
 } from "@/services/establecimientoService";
 import { getStoredToken } from "@/services/authService";
 
+type TipoEstablecimiento =
+  | "restaurant"
+  | "cafe"
+  | "dark_kitchen"
+  | "bar"
+  | "clothing_store";
+
 interface EstablecimientoFormData {
   id?: number;
   slug?: string;
@@ -21,8 +28,8 @@ interface EstablecimientoFormData {
   lng: number | null;
   activo: boolean;
   domicilio_activo: boolean;
+  tipo_establecimiento: TipoEstablecimiento;
 }
-
 
 const paises = ["Colombia"];
 
@@ -46,6 +53,7 @@ export default function EstablecimientoForm({
     lng: null,
     activo: true,
     domicilio_activo: true,
+    tipo_establecimiento: "restaurant",
   });
 
   const [loading, setLoading] = useState(false);
@@ -122,17 +130,24 @@ export default function EstablecimientoForm({
         lng: data.lng,
         activo: data.activo,
         domicilio_activo: data.domicilio_activo,
+        tipo_establecimiento: data.tipo_establecimiento,
       };
 
       const result = data.id
         ? await updateEstablecimiento(data.id, payload, token)
         : await createEstablecimiento(payload, token);
 
+      localStorage.setItem("establecimiento", JSON.stringify(result));
+      window.dispatchEvent(new Event("establecimientoUpdated"));
+
       onSaved(result);
     } finally {
       setLoading(false);
     }
   };
+
+  const esTienda = data.tipo_establecimiento === "clothing_store";
+  const esCocinaOculta = data.tipo_establecimiento === "dark_kitchen";
 
   return (
     <form
@@ -142,6 +157,25 @@ export default function EstablecimientoForm({
       <h2 className="text-lg font-semibold text-gray-800">
         Información del establecimiento
       </h2>
+
+      <Field label="Tipo de establecimiento">
+        <select
+          value={data.tipo_establecimiento}
+          onChange={(e) =>
+            setData({
+              ...data,
+              tipo_establecimiento: e.target.value as TipoEstablecimiento,
+            })
+          }
+          className="input-ui"
+        >
+          <option value="restaurant">Restaurante</option>
+          <option value="cafe">Cafetería</option>
+          <option value="dark_kitchen">Cocina oculta</option>
+          <option value="bar">Bar</option>
+          <option value="clothing_store">Tienda de ropa</option>
+        </select>
+      </Field>
 
       <Field label="Nombre">
         <input
@@ -206,20 +240,17 @@ export default function EstablecimientoForm({
       </Field>
 
       <Field label="Ubicación en el mapa">
-        <div className="bg-blue-50 border border-blue-200 text-blue-800 text-sm p-4 rounded-xl mb-4 space-y-2">
-          <p className="font-medium">
-            Ajusta tu ubicación con precisión
-          </p>
-          <p>
-            Arrastra el marcador hasta la ubicación exacta de tu establecimiento.
-            Puedes usar el scroll y las herramientas del mapa para acercar o alejar.
-          </p>
-          <p>
-            Esta ubicación es clave: se te asignará un radio aproximado de 5 km.
-            Los usuarios que estén dentro de ese rango podrán ver tu establecimiento
-            en nuestra app y recibir recomendaciones y domicilios basadas en cercanía.
-          </p>
-        </div>
+        {esCocinaOculta && (
+          <div className="bg-blue-50 border border-blue-200 text-blue-800 text-sm p-4 rounded-xl mb-4 space-y-2">
+            <p className="font-medium">Ubicación aproximada</p>
+            <p>
+              Marca aproximadamente dónde se encuentra tu cocina. Esta ubicación
+              no se mostrará públicamente, pero permitirá que los usuarios sepan
+              que tu cocina está cerca y puedan recibir recomendaciones dentro
+              del rango.
+            </p>
+          </div>
+        )}
 
         <LocationPicker
           pais={data.pais}
@@ -236,7 +267,7 @@ export default function EstablecimientoForm({
         />
 
         <Switch
-          label="Domicilio disponible"
+          label={esTienda ? "Contacto disponible" : "Domicilio disponible"}
           checked={data.domicilio_activo}
           onChange={(v) =>
             setData({
@@ -249,34 +280,13 @@ export default function EstablecimientoForm({
       </div>
 
       {data.domicilio_activo && (
-        <Field label="Contacto / WhatsApp (incluye código de país)">
-          
-          <div className="bg-amber-50 border border-amber-200 text-amber-900 text-sm p-4 rounded-xl mb-4 space-y-2">
-            <p className="font-semibold flex items-center gap-2">
-              Número receptor oficial de pedidos
-            </p>
-
-            <p>
-              El teléfono que registres aquí será el canal oficial donde se enviarán
-              automáticamente los pedidos a domicilio generados desde nuestra app.
-            </p>
-
-            <p>
-              Cada vez que un cliente confirme un pedido, recibirás automáticamente en este número el detalle completo vía WhatsApp en tiempo real. Desde allí podrás gestionar toda la información del pedido, incluyendo ubicación de entrega y método de pago seleccionado.
-            </p>
-
-            <p>
-              Es fundamental que el número esté correcto, activo y disponible para
-              responder rápidamente, ya que cualquier retraso puede afectar la
-              experiencia del cliente.
-            </p>
-
-            <p className="font-medium">
-              Si actualmente no ofreces servicio a domicilio, puedes desactivar la
-              opción “Domicilio disponible” y este campo dejará de ser obligatorio.
-            </p>
-          </div>
-
+        <Field
+          label={
+            esTienda
+              ? "Contacto / WhatsApp"
+              : "Contacto / WhatsApp (incluye código de país)"
+          }
+        >
           <input
             value={data.telefono_contacto ?? ""}
             onChange={(e) => handleTelefonoChange(e.target.value)}
