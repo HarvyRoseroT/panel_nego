@@ -6,6 +6,7 @@ export interface Carta {
   activa: boolean;
   orden: number;
   establecimiento_id: number;
+  tipo_establecimiento?: string;
   createdAt: string;
   updatedAt: string;
 }

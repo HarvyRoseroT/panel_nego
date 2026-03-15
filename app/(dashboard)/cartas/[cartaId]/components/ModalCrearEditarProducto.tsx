@@ -26,24 +26,40 @@ export default function ModalCrearEditarProducto({
   onClose,
   onSuccess,
 }: Props) {
+
+  const [tipoEstablecimiento,setTipoEstablecimiento] = useState<string | null>(null);
+
   const [nombre,setNombre] = useState("");
+  const [descripcion,setDescripcion] = useState("");
   const [precio,setPrecio] = useState("");
   const [marca,setMarca] = useState("");
   const [talla,setTalla] = useState("");
   const [activo,setActivo] = useState(true);
   const [errors,setErrors] = useState<{nombre?:string;precio?:string}>({});
 
+  useEffect(() => {
+    const saved = localStorage.getItem("establecimiento");
+    if (!saved) return;
+
+    const est = JSON.parse(saved);
+    setTipoEstablecimiento(est.tipo_establecimiento);
+  }, []);
+
+  const esRopa = tipoEstablecimiento === "clothing_store";
+
   useEffect(()=>{
     if(!open) return;
 
     if(producto){
       setNombre(producto.nombre);
+      setDescripcion(producto.descripcion || "");
       setPrecio(producto.precio ? String(producto.precio) : "");
       setMarca(producto.marca || "");
       setTalla(producto.talla || "");
       setActivo(producto.activo);
     }else{
       setNombre("");
+      setDescripcion("");
       setPrecio("");
       setMarca("");
       setTalla("");
@@ -86,10 +102,10 @@ export default function ModalCrearEditarProducto({
 
     const payload={
       nombre,
-      descripcion:"",
+      descripcion: esRopa ? "" : descripcion,
       precio:Number(precio),
-      marca:marca || undefined,
-      talla:talla || undefined,
+      marca:esRopa ? marca || undefined : undefined,
+      talla:esRopa ? talla || undefined : undefined,
       sku:generateSku(),
       activo
     };
@@ -126,14 +142,23 @@ export default function ModalCrearEditarProducto({
     </button>
   );
 
+  const nombreTipo = tipoEstablecimiento
+    ? tipoEstablecimiento.replace("_"," ").toUpperCase()
+    : "DESCONOCIDO";
+
   return(
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
       <div className="w-full max-w-4xl rounded-2xl bg-white shadow-2xl max-h-[90vh] overflow-y-auto">
 
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-          <h2 className="font-semibold text-lg text-gray-800">
-            {producto ? "Editar producto" : "Crear producto"}
-          </h2>
+          <div>
+            <h2 className="font-semibold text-lg text-gray-800">
+              {producto ? "Editar producto" : "Crear producto"}
+            </h2>
+            <p className="text-xs text-gray-500 mt-1">
+              Tipo de establecimiento: <span className="font-semibold text-gray-700">{nombreTipo}</span>
+            </p>
+          </div>
 
           <button onClick={onClose} className="p-2 rounded-lg hover:bg-gray-100">
             <FiX/>
@@ -147,63 +172,76 @@ export default function ModalCrearEditarProducto({
             <input
               value={nombre}
               onChange={(e)=>setNombre(e.target.value)}
-              placeholder="Ej: Camiseta Nike Air"
-              className={`mt-1 w-full rounded-lg bg-gray-50 border px-3 py-2 text-sm focus:outline-none
+              placeholder="Ej: Producto"
+              className={`mt-1 w-full rounded-lg bg-gray-50 border px-3 py-2 text-sm
               ${errors.nombre ? "border-red-400":"border-gray-200"}`}
             />
             {errors.nombre && <p className="text-xs text-red-500 mt-1">{errors.nombre}</p>}
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-
+          {!esRopa && (
             <div>
-              <label className="text-xs text-gray-500">Precio *</label>
-              <div className="relative mt-1">
-                <span className="absolute left-3 top-2 text-gray-500 text-sm">$</span>
-                <input
-                  type="text"
-                  value={precio}
-                  onChange={(e)=>setPrecio(e.target.value)}
-                  placeholder="120000"
-                  className={`w-full pl-7 rounded-lg border px-3 py-2 text-sm
-                  ${errors.precio ? "border-red-400":"border-gray-200"}`}
-                />
-              </div>
-              {errors.precio && <p className="text-xs text-red-500 mt-1">{errors.precio}</p>}
-            </div>
-
-            <div>
-              <label className="text-xs text-gray-500">Marca</label>
-              <input
-                value={marca}
-                onChange={(e)=>setMarca(e.target.value)}
-                placeholder="Ej: Nike"
+              <label className="text-xs text-gray-500">Descripción</label>
+              <textarea
+                value={descripcion}
+                onChange={(e)=>setDescripcion(e.target.value)}
+                placeholder="Descripción del producto"
                 className="mt-1 w-full rounded-lg bg-gray-50 border border-gray-200 px-3 py-2 text-sm"
+                rows={3}
               />
             </div>
-
-          </div>
-
-          <div>
-            <label className="text-xs text-gray-500">Tallas de camisa / saco</label>
-            <div className="flex flex-wrap gap-2 mt-2">
-              {tallasRopa.map(sizeButton)}
-            </div>
-          </div>
+          )}
 
           <div>
-            <label className="text-xs text-gray-500">Tallas de pantalón</label>
-            <div className="flex flex-wrap gap-2 mt-2">
-              {tallasPantalon.map(sizeButton)}
+            <label className="text-xs text-gray-500">Precio *</label>
+            <div className="relative mt-1">
+              <span className="absolute left-3 top-2 text-gray-500 text-sm">$</span>
+              <input
+                type="text"
+                value={precio}
+                onChange={(e)=>setPrecio(e.target.value)}
+                placeholder="120000"
+                className={`w-full pl-7 rounded-lg border px-3 py-2 text-sm
+                ${errors.precio ? "border-red-400":"border-gray-200"}`}
+              />
             </div>
+            {errors.precio && <p className="text-xs text-red-500 mt-1">{errors.precio}</p>}
           </div>
 
-          <div>
-            <label className="text-xs text-gray-500">Tallas de zapato</label>
-            <div className="flex flex-wrap gap-2 mt-2">
-              {tallasZapato.map(sizeButton)}
-            </div>
-          </div>
+          {esRopa && (
+            <>
+              <div>
+                <label className="text-xs text-gray-500">Marca</label>
+                <input
+                  value={marca}
+                  onChange={(e)=>setMarca(e.target.value)}
+                  placeholder="Ej: Nike"
+                  className="mt-1 w-full rounded-lg bg-gray-50 border border-gray-200 px-3 py-2 text-sm"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs text-gray-500">Tallas de camisa / saco</label>
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {tallasRopa.map(sizeButton)}
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs text-gray-500">Tallas de pantalón</label>
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {tallasPantalon.map(sizeButton)}
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs text-gray-500">Tallas de zapato</label>
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {tallasZapato.map(sizeButton)}
+                </div>
+              </div>
+            </>
+          )}
 
           <label className="flex items-center gap-3 text-sm text-gray-600">
             <input
