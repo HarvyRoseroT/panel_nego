@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { logout } from "@/services/authService";
@@ -41,18 +42,24 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <h2 className="text-xl font-bold mb-8">Nego Admin</h2>
 
           <nav className="space-y-4">
-            <a href="/admin" className="block hover:text-green-400">
+            <Link href="/admin" className="block hover:text-green-400">
               Dashboard
-            </a>
-            <a href="/admin/partners" className="block hover:text-green-400">
+            </Link>
+            <Link href="/admin/partners" className="block hover:text-green-400">
               Partners
-            </a>
-            <a href="/admin/commissions" className="block hover:text-green-400">
+            </Link>
+            <Link
+              href="/admin/commissions"
+              className="block hover:text-green-400"
+            >
               Comisiones
-            </a>
-            <a href="/admin/payments" className="block hover:text-green-400">
+            </Link>
+            <Link href="/admin/payments" className="block hover:text-green-400">
               Pagos
-            </a>
+            </Link>
+            <Link href="/admin/ai" className="block hover:text-green-400">
+              Servicio IA
+            </Link>
           </nav>
         </div>
 
