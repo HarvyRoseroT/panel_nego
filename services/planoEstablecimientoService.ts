@@ -63,14 +63,18 @@ export type UpdatePlanoElementoPayload = Partial<CreatePlanoElementoPayload>;
 
 type ApiRecord = Record<string, unknown>;
 
+function normalizeTipo(value: unknown): PlanoElementoTipo {
+  return value === "objeto_cuadrado" ? "objeto_cuadrado" : "mesa";
+}
+
 function normalizeElemento(raw: ApiRecord): PlanoElemento {
   return {
     id: Number(raw.id),
     plano_establecimiento_id: Number(
       raw.plano_establecimiento_id ?? raw.planoId ?? raw.plano_id ?? 0
     ),
-    tipo: raw.tipo,
-    nombre: raw.nombre ?? "",
+    tipo: normalizeTipo(raw.tipo),
+    nombre: String(raw.nombre ?? ""),
     capacidad:
       raw.capacidad === null || raw.capacidad === undefined
         ? null
@@ -88,7 +92,7 @@ function normalizePlano(raw: ApiRecord): PlanoEstablecimiento {
   return {
     id: Number(raw.id),
     establecimiento_id: Number(raw.establecimiento_id),
-    nombre: raw.nombre ?? "",
+    nombre: String(raw.nombre ?? ""),
     ancho: Number(raw.ancho ?? 0),
     alto: Number(raw.alto ?? 0),
     elementos: Array.isArray(elementosRaw)
