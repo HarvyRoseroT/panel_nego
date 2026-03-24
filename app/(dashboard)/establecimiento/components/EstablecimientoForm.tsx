@@ -58,6 +58,7 @@ export default function EstablecimientoForm({
 
   const [loading, setLoading] = useState(false);
   const [errorTelefono, setErrorTelefono] = useState<string | null>(null);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   useEffect(() => {
     if (initialData) {
@@ -112,6 +113,7 @@ export default function EstablecimientoForm({
     if (!validate()) return;
 
     setLoading(true);
+    setSubmitError(null);
 
     try {
       const token = getStoredToken();
@@ -141,6 +143,28 @@ export default function EstablecimientoForm({
       window.dispatchEvent(new Event("establecimientoUpdated"));
 
       onSaved(result);
+    } catch (error: unknown) {
+      const axiosError = error as {
+        response?: {
+          status?: number;
+          data?: {
+            message?: string;
+          };
+        };
+      };
+
+      if (axiosError.response?.status === 402) {
+        setSubmitError(
+          axiosError.response.data?.message ??
+            "Tu cuenta necesita un plan activo para crear el establecimiento."
+        );
+        return;
+      }
+
+      setSubmitError(
+        axiosError.response?.data?.message ??
+          "No se pudo guardar la información del establecimiento."
+      );
     } finally {
       setLoading(false);
     }
@@ -157,6 +181,12 @@ export default function EstablecimientoForm({
       <h2 className="text-lg font-semibold text-gray-800">
         Información del establecimiento
       </h2>
+
+      {submitError && (
+        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {submitError}
+        </div>
+      )}
 
       <Field label="Tipo de establecimiento">
         <select

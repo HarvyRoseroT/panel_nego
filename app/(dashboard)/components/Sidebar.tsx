@@ -8,6 +8,7 @@ import {
   FiHome,
   FiBookOpen,
   FiBox,
+  FiMap,
   FiSettings,
   FiZap,
   FiFileText,
@@ -23,21 +24,25 @@ export default function Sidebar({
   onClose: () => void;
 }) {
   const pathname = usePathname();
-  const [tipo, setTipo] = useState<string | null>(null);
+  const readTipoFromStorage = () => {
+    if (typeof window === "undefined") return null;
 
-  const loadFromStorage = () => {
     const saved = localStorage.getItem("establecimiento");
-    if (!saved) return;
+    if (!saved) return null;
 
-    const est = JSON.parse(saved);
-    setTipo(est.tipo_establecimiento);
+    try {
+      const est = JSON.parse(saved);
+      return est.tipo_establecimiento ?? null;
+    } catch {
+      return null;
+    }
   };
 
-  useEffect(() => {
-    loadFromStorage();
+  const [tipo, setTipo] = useState<string | null>(() => readTipoFromStorage());
 
+  useEffect(() => {
     const handler = () => {
-      loadFromStorage();
+      setTipo(readTipoFromStorage());
     };
 
     window.addEventListener("establecimientoUpdated", handler);
@@ -55,6 +60,15 @@ export default function Sidebar({
       icon: FiBookOpen
     },
     { label: "Productos", href: "/productos", icon: FiBox },
+    ...(tipo !== "clothing_store" && tipo
+      ? [
+          {
+            label: "Plano",
+            href: "/plano-restaurante",
+            icon: FiMap,
+          },
+        ]
+      : []),
     { label: "QR", href: "/qr", icon: FiShare2 },
     { label: "Facturas", href: "/facturas", icon: FiFileText },
     { label: "Soporte", href: "/soporte", icon: FiHelpCircle },
