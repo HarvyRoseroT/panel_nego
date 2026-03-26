@@ -101,6 +101,28 @@ function normalizePlano(raw: ApiRecord): PlanoEstablecimiento {
   };
 }
 
+function normalizePlanoCollection(raw: unknown): PlanoEstablecimiento[] {
+  if (Array.isArray(raw)) {
+    return raw.map((item) => normalizePlano(item as ApiRecord));
+  }
+
+  if (raw && typeof raw === "object") {
+    const record = raw as ApiRecord;
+    const collection =
+      record.planos ?? record.data ?? record.items ?? record.results ?? [];
+
+    if (Array.isArray(collection)) {
+      return collection.map((item) => normalizePlano(item as ApiRecord));
+    }
+
+    if ("id" in record) {
+      return [normalizePlano(record)];
+    }
+  }
+
+  return [];
+}
+
 export async function createPlanoEstablecimiento(
   payload: CreatePlanoEstablecimientoPayload,
   token: string
@@ -114,10 +136,10 @@ export async function createPlanoEstablecimiento(
   return normalizePlano(data);
 }
 
-export async function getPlanoByEstablecimiento(
+export async function getPlanosByEstablecimiento(
   establecimientoId: number,
   token: string
-): Promise<PlanoEstablecimiento | null> {
+): Promise<PlanoEstablecimiento[]> {
   try {
     const { data } = await api.get(
       `/api/planos-establecimiento/establecimiento/${establecimientoId}`,
@@ -128,11 +150,11 @@ export async function getPlanoByEstablecimiento(
       }
     );
 
-    return normalizePlano(data);
+    return normalizePlanoCollection(data);
   } catch (error: unknown) {
     const status = (error as { response?: { status?: number } })?.response
       ?.status;
-    if (status === 404) return null;
+    if (status === 404) return [];
     throw error;
   }
 }

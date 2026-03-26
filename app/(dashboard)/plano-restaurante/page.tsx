@@ -6,6 +6,7 @@ import PlanoCanvas from "./components/PlanoCanvas";
 import {
   AddElementCard,
   ElementPropertiesCard,
+  PlanoSelectorRow,
   PlanoSettingsRow,
 } from "./components/PanelPropiedadesPlano";
 import { usePlanoRestauranteEditor } from "@/hooks/usePlanoRestauranteEditor";
@@ -13,6 +14,7 @@ import { usePlanoRestauranteEditor } from "@/hooks/usePlanoRestauranteEditor";
 export default function PlanoRestaurantePage() {
   const {
     establecimiento,
+    planos,
     plano,
     draftPlano,
     planoOrientacion,
@@ -25,9 +27,12 @@ export default function PlanoRestaurantePage() {
     successMessage,
     hasUnsavedChanges,
     isCompatible,
+    isCreatingNewPlan,
     setPlanoField,
     setPlanoOrientacion,
     selectElement,
+    selectPlano,
+    deletePlano,
     addElement,
     addAutomaticTables,
     updateSelectedElement,
@@ -95,20 +100,17 @@ export default function PlanoRestaurantePage() {
     );
   }
 
-  if (!plano && elementos.length === 0) {
+  if (!plano && elementos.length === 0 && !isCreatingNewPlan) {
     return (
-      <PlanoRestauranteEmptyState
-        nombre={draftPlano.nombre}
-        orientacion={planoOrientacion}
-        saving={saving}
-        onFieldChange={setPlanoField}
-        onOrientacionChange={setPlanoOrientacion}
-        onCreate={() => {
-          startCreatingPlan();
-          void save();
-        }}
-      />
-    );
+        <PlanoRestauranteEmptyState
+          nombre={draftPlano.nombre}
+          orientacion={planoOrientacion}
+          saving={saving}
+          onFieldChange={setPlanoField}
+          onOrientacionChange={setPlanoOrientacion}
+          onCreate={() => void save()}
+        />
+      );
   }
 
   return (
@@ -154,14 +156,28 @@ export default function PlanoRestaurantePage() {
           </div>
         )}
 
+        <PlanoSelectorRow
+          planos={planos.map((item) => ({
+            id: item.id,
+            nombre: item.nombre || `Plano ${item.id}`,
+          }))}
+          activePlanoId={plano?.id ?? null}
+          saving={saving}
+          hasUnsavedChanges={hasUnsavedChanges}
+          onSelectPlano={selectPlano}
+          onCreatePlano={startCreatingPlan}
+        />
+
         <PlanoSettingsRow
           draftPlano={draftPlano}
+          canDelete={Boolean(plano?.id)}
           orientacion={planoOrientacion}
           saving={saving}
           hasUnsavedChanges={hasUnsavedChanges}
           onPlanoFieldChange={setPlanoField}
           onOrientacionChange={setPlanoOrientacion}
           onSave={() => void save()}
+          onDelete={() => void deletePlano()}
         />
 
         <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">

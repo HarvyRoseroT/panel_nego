@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import {
+  FiChevronDown,
   FiBox,
   FiLayout,
   FiPlus,
@@ -32,6 +33,70 @@ function SectionTitle({
       <div>
         <h3 className="text-sm font-semibold text-gray-900">{title}</h3>
         <p className="text-xs leading-5 text-gray-500">{subtitle}</p>
+      </div>
+    </div>
+  );
+}
+
+export function PlanoSelectorRow({
+  planos,
+  activePlanoId,
+  saving,
+  hasUnsavedChanges,
+  onSelectPlano,
+  onCreatePlano,
+}: {
+  planos: Array<{ id: number; nombre: string }>;
+  activePlanoId: number | null;
+  saving: boolean;
+  hasUnsavedChanges: boolean;
+  onSelectPlano: (planoId: number) => void;
+  onCreatePlano: () => void;
+}) {
+  return (
+    <div className="rounded-[28px] border border-gray-200 bg-white p-5 shadow-sm">
+      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_220px] xl:items-end">
+        <div className="grid gap-4 lg:grid-cols-[220px_minmax(0,1fr)] lg:items-end">
+          <SectionTitle
+            icon={<FiLayout className="text-lg" />}
+            title="Planos guardados"
+            subtitle="Cambia entre planos existentes o crea uno nuevo para editarlo."
+          />
+
+          <Field label="Plano activo">
+            <div className="relative">
+              <select
+                value={activePlanoId ?? ""}
+                onChange={(event) =>
+                  onSelectPlano(Number.parseInt(event.target.value, 10))
+                }
+                disabled={saving || planos.length === 0}
+                className="input-ui appearance-none pr-10"
+              >
+                {activePlanoId === null && (
+                  <option value="">Nuevo plano sin guardar</option>
+                )}
+                {planos.map((plano) => (
+                  <option key={plano.id} value={plano.id}>
+                    {plano.nombre}
+                  </option>
+                ))}
+              </select>
+
+              <FiChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            </div>
+          </Field>
+        </div>
+
+        <button
+          type="button"
+          onClick={onCreatePlano}
+          disabled={saving}
+          className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl border border-[#cae3bb] bg-[#72eb15]/10 px-4 text-sm font-semibold text-[#265f08] transition hover:bg-[#72eb15]/20 disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          <FiPlus />
+          {hasUnsavedChanges ? "Nuevo plano" : "Crear nuevo plano"}
+        </button>
       </div>
     </div>
   );
@@ -262,24 +327,28 @@ export function ElementPropertiesCard({
 
 export function PlanoSettingsRow({
   draftPlano,
+  canDelete,
   orientacion,
   saving,
   hasUnsavedChanges,
   onPlanoFieldChange,
   onOrientacionChange,
   onSave,
+  onDelete,
 }: {
   draftPlano: DraftPlano;
+  canDelete: boolean;
   orientacion: PlanoOrientacion;
   saving: boolean;
   hasUnsavedChanges: boolean;
   onPlanoFieldChange: (field: "nombre", value: string) => void;
   onOrientacionChange: (orientacion: PlanoOrientacion) => void;
   onSave: () => void;
+  onDelete: () => void;
 }) {
   return (
     <div className="rounded-[28px] border border-gray-200 bg-white p-5 shadow-sm">
-      <div className="grid gap-4 xl:grid-cols-[220px_minmax(0,1fr)_260px_220px] xl:items-end">
+      <div className="grid gap-4 xl:grid-cols-[220px_minmax(0,1fr)_260px_280px] xl:items-end">
         <SectionTitle
           icon={<FiLayout className="text-lg" />}
           title="Opciones del plano"
@@ -323,14 +392,29 @@ export function PlanoSettingsRow({
           </div>
         </Field>
 
-        <button
-          onClick={onSave}
-          disabled={saving || !hasUnsavedChanges}
-          className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl bg-[#3fa10a] px-4 text-sm font-semibold text-white transition hover:bg-[#358609] disabled:cursor-not-allowed disabled:bg-gray-300"
-        >
-          <FiSave />
-          {saving ? "Guardando..." : "Guardar cambios"}
-        </button>
+        <div className="flex items-center gap-3 xl:justify-end">
+          {canDelete && (
+            <button
+              type="button"
+              onClick={onDelete}
+              disabled={saving}
+              className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-red-50 text-red-600 transition hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-60"
+              aria-label="Eliminar plano"
+              title="Eliminar plano"
+            >
+              <FiTrash2 />
+            </button>
+          )}
+
+          <button
+            onClick={onSave}
+            disabled={saving || !hasUnsavedChanges}
+            className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl bg-[#3fa10a] px-4 text-sm font-semibold text-white transition hover:bg-[#358609] disabled:cursor-not-allowed disabled:bg-gray-300"
+          >
+            <FiSave />
+            {saving ? "Guardando..." : "Guardar cambios"}
+          </button>
+        </div>
       </div>
     </div>
   );

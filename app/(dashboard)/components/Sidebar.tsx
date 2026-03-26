@@ -8,6 +8,7 @@ import {
   FiHome,
   FiBookOpen,
   FiBox,
+  FiClipboard,
   FiMap,
   FiSettings,
   FiZap,
@@ -66,6 +67,11 @@ export default function Sidebar({
             label: "Plano",
             href: "/plano-restaurante",
             icon: FiMap,
+          },
+          {
+            label: "Pedidos",
+            href: "/pedidos-mesas",
+            icon: FiClipboard,
           },
         ]
       : []),

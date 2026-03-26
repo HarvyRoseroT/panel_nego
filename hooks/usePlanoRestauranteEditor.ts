@@ -8,8 +8,9 @@ import {
   type PlanoEstablecimiento,
   createPlanoElemento,
   createPlanoEstablecimiento,
+  deletePlanoEstablecimiento,
   deletePlanoElemento,
-  getPlanoByEstablecimiento,
+  getPlanosByEstablecimiento,
   getPlanoById,
   updatePlanoElemento,
   updatePlanoEstablecimiento,
@@ -156,6 +157,14 @@ function hasPlanoChanged(
   );
 }
 
+function hasDraftAgainstDefaultChanged(draft: DraftPlano) {
+  return (
+    draft.nombre !== DEFAULT_PLANO.nombre ||
+    draft.ancho !== DEFAULT_PLANO.ancho ||
+    draft.alto !== DEFAULT_PLANO.alto
+  );
+}
+
 function hasElementoChanged(
   original: DraftPlanoElemento | undefined,
   current: DraftPlanoElemento
@@ -180,6 +189,7 @@ function getOrientationFromPlano(plano: Pick<DraftPlano, "ancho" | "alto">): Pla
 export function usePlanoRestauranteEditor() {
   const [establecimiento, setEstablecimiento] =
     useState<Establecimiento | null>(null);
+  const [planos, setPlanos] = useState<PlanoEstablecimiento[]>([]);
   const [plano, setPlano] = useState<PlanoEstablecimiento | null>(null);
   const [draftPlano, setDraftPlano] = useState<DraftPlano>(DEFAULT_PLANO);
   const [elementos, setElementos] = useState<DraftPlanoElemento[]>([]);
@@ -188,6 +198,7 @@ export function usePlanoRestauranteEditor() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [isCreatingNewPlan, setIsCreatingNewPlan] = useState(false);
   const serialRef = useRef(1);
 
   const isCompatible =
@@ -207,16 +218,20 @@ export function usePlanoRestauranteEditor() {
         setEstablecimiento(currentEstablecimiento);
 
         if (!currentEstablecimiento?.id) {
+          setPlanos([]);
           setPlano(null);
           setDraftPlano(DEFAULT_PLANO);
           setElementos([]);
           return;
         }
 
-        const foundPlano = await getPlanoByEstablecimiento(
+        const foundPlanos = await getPlanosByEstablecimiento(
           currentEstablecimiento.id,
           token
         );
+        setPlanos(foundPlanos);
+
+        const foundPlano = foundPlanos[0] ?? null;
 
         if (!foundPlano) {
           setPlano(null);
@@ -279,7 +294,14 @@ export function usePlanoRestauranteEditor() {
   }, [plano]);
 
   const hasUnsavedChanges = useMemo(() => {
-    if (!plano && elementos.length === 0) return false;
+    if (!plano) {
+      return (
+        isCreatingNewPlan ||
+        elementos.length > 0 ||
+        hasDraftAgainstDefaultChanged(draftPlano)
+      );
+    }
+
     if (hasPlanoChanged(plano, draftPlano)) return true;
 
     const originalIds = new Set((plano?.elementos ?? []).map((item) => item.id));
@@ -303,7 +325,7 @@ export function usePlanoRestauranteEditor() {
         element
       )
     );
-  }, [draftPlano, elementos, originalElementMap, plano]);
+  }, [draftPlano, elementos, isCreatingNewPlan, originalElementMap, plano]);
 
   const selectedElement =
     elementos.find((element) => element.localId === selectedId) ?? null;
@@ -458,6 +480,7 @@ export function usePlanoRestauranteEditor() {
 
   const resetDraft = (nextPlano: PlanoEstablecimiento | null) => {
     setPlano(nextPlano);
+    setIsCreatingNewPlan(false);
 
     if (!nextPlano) {
       setDraftPlano(DEFAULT_PLANO);
@@ -479,6 +502,12 @@ export function usePlanoRestauranteEditor() {
       )
     );
     setSelectedId(null);
+  };
+
+  const syncPlanos = (
+    updater: (current: PlanoEstablecimiento[]) => PlanoEstablecimiento[]
+  ) => {
+    setPlanos((current) => updater(current));
   };
 
   const save = async () => {
@@ -568,6 +597,11 @@ export function usePlanoRestauranteEditor() {
       }
 
       const refreshed = await getPlanoById(currentPlanoId, token);
+      syncPlanos((current) => {
+        const next = current.filter((item) => item.id !== refreshed.id);
+        next.unshift(refreshed);
+        return next;
+      });
       resetDraft(refreshed);
       setSuccessMessage("Cambios guardados");
     } catch {
@@ -578,13 +612,111 @@ export function usePlanoRestauranteEditor() {
   };
 
   const startCreatingPlan = () => {
-    setDraftPlano(DEFAULT_PLANO);
+    if (
+      hasUnsavedChanges &&
+      !window.confirm(
+        "Tienes cambios sin guardar. Si creas un nuevo plano los perderas. ¿Deseas continuar?"
+      )
+    ) {
+      return;
+    }
+
+    const nextName =
+      planos.length > 0 ? `Plano ${planos.length + 1}` : DEFAULT_PLANO.nombre;
+
+    setPlano(null);
+    setDraftPlano({
+      ...DEFAULT_PLANO,
+      nombre: nextName,
+    });
     setElementos([]);
     setSelectedId(null);
+    setIsCreatingNewPlan(true);
+    setError(null);
+    setSuccessMessage(null);
+  };
+
+  const selectPlano = async (planoId: number) => {
+    if (plano?.id === planoId) return;
+
+    if (
+      hasUnsavedChanges &&
+      !window.confirm(
+        "Tienes cambios sin guardar. Si cambias de plano los perderas. ¿Deseas continuar?"
+      )
+    ) {
+      return;
+    }
+
+    const token = getStoredToken();
+    if (!token) {
+      setError("No autorizado");
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const nextPlano = await getPlanoById(planoId, token);
+      syncPlanos((current) =>
+        current.map((item) => (item.id === nextPlano.id ? nextPlano : item))
+      );
+      resetDraft(nextPlano);
+    } catch {
+      setError("No se pudo cargar el plano seleccionado");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const deletePlano = async () => {
+    if (!plano?.id) return;
+
+    if (
+      !window.confirm(
+        `Vas a eliminar el plano "${draftPlano.nombre}". Esta accion no se puede deshacer. ¿Deseas continuar?`
+      )
+    ) {
+      return;
+    }
+
+    const token = getStoredToken();
+    if (!token) {
+      setError("No autorizado");
+      return;
+    }
+
+    setSaving(true);
+    setError(null);
+
+    try {
+      await deletePlanoEstablecimiento(plano.id, token);
+
+      const remainingPlanos = planos.filter((item) => item.id !== plano.id);
+      setPlanos(remainingPlanos);
+
+      if (remainingPlanos.length === 0) {
+        resetDraft(null);
+      } else {
+        const nextPlano = await getPlanoById(remainingPlanos[0].id, token);
+        setPlanos((current) =>
+          current.map((item) => (item.id === nextPlano.id ? nextPlano : item))
+        );
+        resetDraft(nextPlano);
+      }
+
+      setSuccessMessage("Plano eliminado");
+    } catch {
+      setError("No se pudo eliminar el plano");
+    } finally {
+      setSaving(false);
+    }
   };
 
   return {
     establecimiento,
+    planos,
     plano,
     draftPlano,
     elementos,
@@ -597,9 +729,12 @@ export function usePlanoRestauranteEditor() {
     successMessage,
     hasUnsavedChanges,
     isCompatible,
+    isCreatingNewPlan,
     setPlanoField,
     setPlanoOrientacion,
     selectElement,
+    selectPlano,
+    deletePlano,
     addElement,
     addAutomaticTables,
     updateSelectedElement,
