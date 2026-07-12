@@ -12,7 +12,7 @@ import { getStoredToken } from "@/services/authService";
 const QR_BASE_URL =
   process.env.NODE_ENV === "development"
     ? "http://localhost:3003"
-    : "https://nego.ink";
+    : "https://open.nego.ink";
 const QR_SIZE = 300;
 const QR_RADIUS = 32;
 
