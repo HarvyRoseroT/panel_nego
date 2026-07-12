@@ -7,6 +7,14 @@ import {
 } from "@/services/establecimientoService";
 import { getStoredToken } from "@/services/authService";
 
+const API_BASE = (process.env.NEXT_PUBLIC_API_URL || "").replace(/\/$/, "");
+
+const normalizeUrl = (url?: string | null) => {
+  if (!url) return null;
+  if (url.startsWith("http://") || url.startsWith("https://")) return url;
+  return `${API_BASE}${url.startsWith("/") ? "" : "/"}${url}`;
+};
+
 export default function ModalMultimediaEstablecimiento({
   establecimientoId,
   logoUrl,
@@ -46,7 +54,7 @@ export default function ModalMultimediaEstablecimiento({
         logoFile,
         token
       );
-      const url = `${res.logo_url}?v=${Date.now()}`;
+      const url = `${normalizeUrl(res.logo_url)}?v=${Date.now()}`;
       setLogoPreview(url);
       setLogoFile(null);
       setLogoSaved(true);
@@ -69,7 +77,7 @@ export default function ModalMultimediaEstablecimiento({
         coverFile,
         token
       );
-      const url = `${res.imagen_ubicacion_url}?v=${Date.now()}`;
+      const url = `${normalizeUrl(res.imagen_ubicacion_url)}?v=${Date.now()}`;
       setCoverPreview(url);
       setCoverFile(null);
       setCoverSaved(true);

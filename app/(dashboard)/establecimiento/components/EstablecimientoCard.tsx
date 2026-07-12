@@ -22,10 +22,12 @@ interface Props {
   onUpdated: (data: Partial<Establecimiento>) => void;
 }
 
+const API_BASE = (process.env.NEXT_PUBLIC_API_URL || "").replace(/\/$/, "");
+
 const normalizeUrl = (url?: string | null) => {
   if (!url) return null;
   if (url.startsWith("http://") || url.startsWith("https://")) return url;
-  return `https://${url}`;
+  return `${API_BASE}${url.startsWith("/") ? "" : "/"}${url}`;
 };
 
 export default function EstablecimientoCard({
@@ -153,8 +155,8 @@ export default function EstablecimientoCard({
       {openMedia && (
         <ModalMultimediaEstablecimiento
           establecimientoId={establecimiento.id}
-          logoUrl={establecimiento.logo_url}
-          imagenUbicacionUrl={establecimiento.imagen_ubicacion_url}
+          logoUrl={logoUrl}
+          imagenUbicacionUrl={coverUrl}
           onClose={() => setOpenMedia(false)}
           onSaved={(data) => onUpdated(data)}
         />
