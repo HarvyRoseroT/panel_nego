@@ -68,12 +68,25 @@ function SortableItem({
         )}
       </div>
 
-      <p
+      <div
         onClick={() => onEdit(producto)}
-        className="flex-1 min-w-0 text-sm font-medium text-gray-700 cursor-pointer line-clamp-2"
+        className="flex-1 min-w-0 cursor-pointer"
       >
-        {producto.nombre}
-      </p>
+        <p className="text-sm font-medium text-gray-700 line-clamp-2">
+          {producto.nombre}
+        </p>
+        {producto.descripcion && (
+          <p className="hidden sm:block mt-0.5 text-xs text-gray-500 truncate">
+            {producto.descripcion}
+          </p>
+        )}
+      </div>
+
+      {producto.precio != null && (
+        <p className="hidden sm:block shrink-0 text-sm font-semibold text-gray-700">
+          ${Number(producto.precio).toFixed(2)}
+        </p>
+      )}
 
       <div className="flex items-center gap-2 shrink-0">
         <button

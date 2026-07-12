@@ -18,7 +18,10 @@ export interface Subscription {
   status:
     | "TRIAL"
     | "ACTIVE"
-    | "EXPIRED";
+    | "PAST_DUE"
+    | "FAILED"
+    | "EXPIRED"
+    | "CANCELED";
   plan_price: number;
   currency: string;
   current_period_start: string | null;
@@ -49,6 +52,13 @@ export interface AcceptanceTokenResponse {
   acceptance_token: string;
 }
 
+export interface CheckoutData {
+  currency: string;
+  amountInCents: number;
+  reference: string;
+  signature: string;
+}
+
 export async function getPlans(token: string): Promise<Plan[]> {
   const { data } = await api.get("/planes", {
     headers: { Authorization: `Bearer ${token}` },
@@ -77,7 +87,7 @@ export async function getMySubscription(
 export async function getCheckoutData(
   plan_id: number,
   token: string
-) {
+): Promise<CheckoutData> {
   const { data } = await api.post(
     "/api/billing/checkout-data",
     { plan_id },

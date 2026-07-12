@@ -25,10 +25,62 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+/* Evita el zoom automático de iOS al enfocar inputs (font-size < 16px dispara zoom) */
+input,
+select,
+textarea {
+  font-size: 16px;
+}
+
+@media (min-width: 640px) {
+  input,
+  select,
+  textarea {
+    font-size: inherit;
+  }
+}
+
 .input-ui {
-  @apply w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm
+  @apply w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900
   appearance-none
   focus:outline-none focus:ring-2 focus:ring-[#72eb15] focus:border-[#72eb15]
+  disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed
   transition;
+}
+
+.label-ui {
+  @apply block text-sm font-medium text-gray-700 mb-1.5;
+}
+
+.btn-primary {
+  @apply inline-flex items-center justify-center gap-2 rounded-lg
+  bg-[#3fa10a] px-4 py-2.5 text-sm font-semibold text-white
+  hover:bg-[#368d09] active:bg-[#2f7c08]
+  disabled:opacity-60 disabled:cursor-not-allowed
+  transition;
+}
+
+.btn-secondary {
+  @apply inline-flex items-center justify-center gap-2 rounded-lg
+  border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700
+  hover:bg-gray-50 active:bg-gray-100
+  disabled:opacity-60 disabled:cursor-not-allowed
+  transition;
+}
+
+.btn-danger {
+  @apply inline-flex items-center justify-center gap-2 rounded-lg
+  bg-red-600 px-4 py-2.5 text-sm font-semibold text-white
+  hover:bg-red-700 active:bg-red-800
+  disabled:opacity-60 disabled:cursor-not-allowed
+  transition;
+}
+
+.card-ui {
+  @apply bg-white rounded-2xl border border-gray-100 shadow-sm;
+}
+
+.table-wrap {
+  @apply w-full overflow-x-auto;
 }
 

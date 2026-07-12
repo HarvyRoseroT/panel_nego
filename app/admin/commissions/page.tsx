@@ -62,7 +62,7 @@ export default function AdminCommissionsPage() {
       </button>
 
       <div className="bg-neutral-900 border border-neutral-800 rounded-xl overflow-hidden">
-
+        <div className="overflow-x-auto">
         <table className="w-full text-sm">
 
           <thead className="bg-neutral-800 text-neutral-400">
@@ -117,7 +117,7 @@ export default function AdminCommissionsPage() {
           </tbody>
 
         </table>
-
+        </div>
       </div>
 
     </div>

@@ -81,15 +81,15 @@ export default function ModalMultimediaEstablecimiento({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-      <div className="bg-white rounded-3xl w-full max-w-xl shadow-2xl">
-        <div className="px-6 py-5 text-center">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+      <div className="bg-white rounded-3xl w-full max-w-xl shadow-2xl max-h-[90vh] overflow-y-auto">
+        <div className="px-4 sm:px-6 py-5 text-center">
           <h3 className="text-lg font-semibold text-gray-800">
             Multimedia del establecimiento
           </h3>
         </div>
 
-        <div className="px-6 py-8 space-y-12">
+        <div className="px-4 sm:px-6 py-8 space-y-12">
           <div className="flex flex-col items-center gap-5">
             <div className="w-28 h-28 rounded-full bg-[#72eb15]/20 overflow-hidden">
               {logoPreview ? (
@@ -101,7 +101,7 @@ export default function ModalMultimediaEstablecimiento({
               )}
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center justify-center gap-3">
               <label className="px-5 py-2 rounded-full border border-[#72eb15] text-[#4fb30f] font-semibold cursor-pointer">
                 Cambiar logo
                 <input
@@ -144,7 +144,7 @@ export default function ModalMultimediaEstablecimiento({
               )}
             </div>
 
-            <div className="flex justify-center gap-3">
+            <div className="flex flex-wrap justify-center gap-3">
               <label className="px-5 py-2 rounded-full border border-[#72eb15] text-[#4fb30f] font-semibold cursor-pointer">
                 Cambiar imagen
                 <input
@@ -179,7 +179,7 @@ export default function ModalMultimediaEstablecimiento({
           </div>
         </div>
 
-        <div className="px-6 py-5 flex justify-center">
+        <div className="px-4 sm:px-6 py-5 flex justify-center">
           <button
             onClick={onClose}
             className="px-8 py-2 rounded-full bg-gray-100 text-gray-700 font-medium"

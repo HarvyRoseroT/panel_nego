@@ -9,7 +9,10 @@ import {
 } from "@/services/establecimientoService";
 import { getStoredToken } from "@/services/authService";
 
-const QR_BASE_URL = "https://nego.ink";
+const QR_BASE_URL =
+  process.env.NODE_ENV === "development"
+    ? "http://localhost:3003"
+    : "https://nego.ink";
 const QR_SIZE = 300;
 const QR_RADIUS = 32;
 
@@ -185,17 +188,17 @@ export default function QRPage() {
   if (!establecimiento) return null;
 
   return (
-    <div className="mx-auto max-w-7xl space-y-12 px-6 pb-24 pt-16">
+    <div className="mx-auto max-w-7xl space-y-8 sm:space-y-12 px-4 sm:px-6 pb-16 sm:pb-24 pt-8 sm:pt-16">
       <div className="space-y-2 text-center">
-        <h1 className="text-3xl font-semibold">
+        <h1 className="text-2xl sm:text-3xl font-semibold">
           QR de {establecimiento.nombre}
         </h1>
-        <p className="text-sm text-gray-600">{qrUrl}</p>
+        <p className="text-sm text-gray-600 break-all">{qrUrl}</p>
       </div>
 
-      <div className="grid grid-cols-1 gap-12 xl:grid-cols-[1.2fr_0.8fr]">
+      <div className="grid grid-cols-1 gap-8 sm:gap-12 xl:grid-cols-[1.2fr_0.8fr]">
         <div className="space-y-8">
-          <div className="space-y-10 rounded-2xl bg-white p-7 shadow-sm">
+          <div className="space-y-8 sm:space-y-10 rounded-2xl bg-white p-4 sm:p-7 shadow-sm">
             <div className="space-y-1">
               <h3 className="text-base font-semibold text-gray-800">
                 Apariencia del QR
@@ -205,7 +208,7 @@ export default function QRPage() {
               </p>
             </div>
 
-            <div className="grid grid-cols-2 gap-6">
+            <div className="grid grid-cols-2 gap-3 sm:gap-6">
               <div className="space-y-2 rounded-xl bg-gray-50 p-4">
                 <p className="text-sm font-medium text-gray-700">Color del QR</p>
                 <div className="flex items-center gap-3 pt-2">
@@ -294,7 +297,7 @@ export default function QRPage() {
           </div>
         </div>
 
-        <div className="flex flex-col items-center space-y-8 rounded-2xl bg-gray-50 p-7 shadow-sm">
+        <div className="flex flex-col items-center space-y-8 rounded-2xl bg-gray-50 p-4 sm:p-7 shadow-sm">
           <div className="space-y-1 text-center">
             <h3 className="text-base font-semibold text-gray-800">QR general</h3>
             <p className="text-sm text-gray-500">
@@ -307,10 +310,10 @@ export default function QRPage() {
           </div>
 
           <div
-            className="rounded-3xl shadow-[0_20px_40px_-12px_rgba(0,0,0,0.25)]"
+            className="w-full max-w-75 rounded-3xl shadow-[0_20px_40px_-12px_rgba(0,0,0,0.25)]"
             style={{ backgroundColor: bgColor }}
           >
-            <canvas ref={canvasRef} className="block rounded-3xl" />
+            <canvas ref={canvasRef} className="block h-auto w-full rounded-3xl" />
           </div>
 
           <div className="w-full space-y-4 rounded-2xl bg-white p-5 shadow-sm">

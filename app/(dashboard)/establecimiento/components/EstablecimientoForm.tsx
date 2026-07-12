@@ -176,7 +176,7 @@ export default function EstablecimientoForm({
   return (
     <form
       onSubmit={handleSubmit}
-      className="bg-white border border-gray-200 rounded-2xl p-8 space-y-8 shadow-sm"
+      className="bg-white border border-gray-200 rounded-2xl p-4 sm:p-8 space-y-6 sm:space-y-8 shadow-sm"
     >
       <h2 className="text-lg font-semibold text-gray-800">
         Información del establecimiento

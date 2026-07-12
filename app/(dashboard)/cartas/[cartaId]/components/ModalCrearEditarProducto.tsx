@@ -147,62 +147,63 @@ export default function ModalCrearEditarProducto({
     : "DESCONOCIDO";
 
   return(
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-      <div className="w-full max-w-4xl rounded-2xl bg-white shadow-2xl max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-0 sm:p-4">
+      <div className="w-full h-full sm:h-auto sm:max-w-2xl rounded-none sm:rounded-2xl bg-white shadow-2xl max-h-full sm:max-h-[90vh] overflow-y-auto">
 
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-          <div>
+        <div className="flex items-center justify-between gap-3 px-4 sm:px-6 py-4 border-b border-gray-100">
+          <div className="min-w-0">
             <h2 className="font-semibold text-lg text-gray-800">
               {producto ? "Editar producto" : "Crear producto"}
             </h2>
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="text-xs text-gray-500 mt-1 truncate">
               Tipo de establecimiento: <span className="font-semibold text-gray-700">{nombreTipo}</span>
             </p>
           </div>
 
-          <button onClick={onClose} className="p-2 rounded-lg hover:bg-gray-100">
+          <button onClick={onClose} className="p-2 rounded-lg hover:bg-gray-100 shrink-0">
             <FiX/>
           </button>
         </div>
 
-        <div className="p-6 space-y-6">
+        <div className="p-4 sm:p-6 space-y-6">
 
           <div>
-            <label className="text-xs text-gray-500">Nombre *</label>
+            <label className="label-ui">Nombre *</label>
             <input
               value={nombre}
               onChange={(e)=>setNombre(e.target.value)}
               placeholder="Ej: Producto"
-              className={`mt-1 w-full rounded-lg bg-gray-50 border px-3 py-2 text-sm
-              ${errors.nombre ? "border-red-400":"border-gray-200"}`}
+              className={`input-ui ${errors.nombre ? "border-red-400 focus:ring-red-400 focus:border-red-400" : ""}`}
             />
             {errors.nombre && <p className="text-xs text-red-500 mt-1">{errors.nombre}</p>}
           </div>
 
           {!esRopa && (
             <div>
-              <label className="text-xs text-gray-500">Descripción</label>
+              <label className="label-ui">Descripción</label>
               <textarea
                 value={descripcion}
                 onChange={(e)=>setDescripcion(e.target.value)}
                 placeholder="Descripción del producto"
-                className="mt-1 w-full rounded-lg bg-gray-50 border border-gray-200 px-3 py-2 text-sm"
+                className="input-ui resize-none"
                 rows={3}
               />
             </div>
           )}
 
           <div>
-            <label className="text-xs text-gray-500">Precio *</label>
-            <div className="relative mt-1">
-              <span className="absolute left-3 top-2 text-gray-500 text-sm">$</span>
+            <label className="label-ui">Precio *</label>
+            <div className="flex items-stretch">
+              <span className="flex items-center rounded-l-lg border border-r-0 border-gray-200 bg-gray-50 px-3 text-sm text-gray-500">
+                $
+              </span>
               <input
                 type="text"
+                inputMode="numeric"
                 value={precio}
                 onChange={(e)=>setPrecio(e.target.value)}
                 placeholder="120000"
-                className={`w-full pl-7 rounded-lg border px-3 py-2 text-sm
-                ${errors.precio ? "border-red-400":"border-gray-200"}`}
+                className={`input-ui rounded-l-none ${errors.precio ? "border-red-400 focus:ring-red-400 focus:border-red-400" : ""}`}
               />
             </div>
             {errors.precio && <p className="text-xs text-red-500 mt-1">{errors.precio}</p>}
@@ -211,31 +212,31 @@ export default function ModalCrearEditarProducto({
           {esRopa && (
             <>
               <div>
-                <label className="text-xs text-gray-500">Marca</label>
+                <label className="label-ui">Marca</label>
                 <input
                   value={marca}
                   onChange={(e)=>setMarca(e.target.value)}
                   placeholder="Ej: Nike"
-                  className="mt-1 w-full rounded-lg bg-gray-50 border border-gray-200 px-3 py-2 text-sm"
+                  className="input-ui"
                 />
               </div>
 
               <div>
-                <label className="text-xs text-gray-500">Tallas de camisa / saco</label>
+                <label className="label-ui">Tallas de camisa / saco</label>
                 <div className="flex flex-wrap gap-2 mt-2">
                   {tallasRopa.map(sizeButton)}
                 </div>
               </div>
 
               <div>
-                <label className="text-xs text-gray-500">Tallas de pantalón</label>
+                <label className="label-ui">Tallas de pantalón</label>
                 <div className="flex flex-wrap gap-2 mt-2">
                   {tallasPantalon.map(sizeButton)}
                 </div>
               </div>
 
               <div>
-                <label className="text-xs text-gray-500">Tallas de zapato</label>
+                <label className="label-ui">Tallas de zapato</label>
                 <div className="flex flex-wrap gap-2 mt-2">
                   {tallasZapato.map(sizeButton)}
                 </div>
@@ -255,17 +256,17 @@ export default function ModalCrearEditarProducto({
 
         </div>
 
-        <div className="flex justify-end gap-2 px-6 py-4 border-t border-gray-100">
+        <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 px-4 sm:px-6 py-4 border-t border-gray-100">
           <button
             onClick={onClose}
-            className="px-4 py-2 rounded-lg bg-gray-100 text-gray-700 text-sm hover:bg-gray-200"
+            className="btn-secondary"
           >
             Cancelar
           </button>
 
           <button
             onClick={handleSave}
-            className="px-5 py-2 rounded-lg bg-[#72eb15]/20 text-[#3fa10a] font-semibold text-sm hover:bg-[#72eb15]/30"
+            className="btn-primary"
           >
             Guardar
           </button>

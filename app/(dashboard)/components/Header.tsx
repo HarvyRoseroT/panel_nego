@@ -11,15 +11,25 @@ import {
   FiLogOut,
   FiMail,
 } from "react-icons/fi";
+import type { IconType } from "react-icons";
 import { useRouter } from "next/navigation";
 import { useUser } from "@/contexts/UserContext";
+import { useBillingMode } from "@/contexts/BillingModeContext";
 import ModalPlanes from "./ModalPlanesWompi";
-import { getMe } from "@/services/authService";
 
 const GRACE_PERIOD_DAYS = 1;
 
-function isInGracePeriod(subscription: any) {
-  if (!subscription || subscription.status !== "PAST_DUE") return false;
+interface HeaderSubscription {
+  status: string;
+  updatedAt?: string;
+  Plan?: {
+    name?: string;
+  } | null;
+}
+
+function isInGracePeriod(subscription: HeaderSubscription | null | undefined) {
+  if (!subscription || subscription.status !== "PAST_DUE" || !subscription.updatedAt)
+    return false;
   const updatedAt = new Date(subscription.updatedAt);
   const limit = new Date(updatedAt);
   limit.setDate(limit.getDate() + GRACE_PERIOD_DAYS);
@@ -32,6 +42,7 @@ export default function Header({
   onToggleSidebar: () => void;
 }) {
   const { user, logout, refreshUser } = useUser();
+  const { billingMode } = useBillingMode();
   const router = useRouter();
 
   const [openMenu, setOpenMenu] = useState(false);
@@ -40,14 +51,8 @@ export default function Header({
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        await getMe();
-        await refreshUser();
-      } catch (error) {}
-    };
-    fetchUser();
-  }, []);
+    refreshUser();
+  }, [refreshUser]);
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -72,10 +77,11 @@ export default function Header({
 
   const subscription = user?.subscription;
   const showGraceBanner = isInGracePeriod(subscription);
+  const freeModeEnabled = billingMode?.free_mode_enabled === true;
 
   const statusConfig: Record<
     string,
-    { label: string; styles: string; Icon: any }
+    { label: string; styles: string; Icon: IconType }
   > = {
     TRIAL: {
       label: "Prueba gratuita",
@@ -137,7 +143,14 @@ export default function Header({
             <FiMenu className="text-xl" />
           </button>
 
-          {subscription && planUI && (
+          {freeModeEnabled ? (
+            <span className="flex items-center justify-center gap-2.5 rounded-xl bg-green-50 px-3 py-2.5 text-base font-semibold text-green-700 md:px-5">
+              <FiCheckCircle className="text-lg shrink-0" />
+              <span className="hidden md:inline leading-none whitespace-nowrap">
+                Modo gratuito activo
+              </span>
+            </span>
+          ) : subscription && planUI && (
             <button
               onClick={handleOpenPlanes}
               className={`flex items-center justify-center md:justify-start gap-2.5 px-3 md:px-5 py-2.5 rounded-xl font-semibold text-base ${planUI.styles}`}

@@ -7,11 +7,12 @@ import {
   updateNotificationPreferences,
 } from "@/services/authService";
 import ModalPlanes from "../components/ModalPlanesWompi";
-import CancelSubscriptionModal from "./components/CancelSubscriptionModal";
 import { useRouter } from "next/navigation";
+import { useBillingMode } from "@/contexts/BillingModeContext";
 
 export default function ConfiguracionPage() {
-  const { user, refreshUser, token } = useUser();
+  const { user, refreshUser } = useUser();
+  const { billingMode, loading: billingModeLoading } = useBillingMode();
   const router = useRouter();
 
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -47,6 +48,7 @@ export default function ConfiguracionPage() {
     emailsNovedades !== originalPrefs.emails_novedades;
 
   const subscription = user?.subscription ?? null;
+  const freeModeEnabled = billingMode?.free_mode_enabled === true;
 
   if (!user) {
     return (
@@ -124,7 +126,7 @@ export default function ConfiguracionPage() {
                 {!sent ? (
                   <button
                     onClick={() => setConfirmOpen(true)}
-                    className="px-4 py-2 rounded-lg border text-sm"
+                    className="btn-secondary"
                   >
                     Cambiar contraseña
                   </button>
@@ -186,6 +188,17 @@ export default function ConfiguracionPage() {
             </div>
 
             <div className="p-6 space-y-4 text-sm">
+              {freeModeEnabled && (
+                <div className="rounded-xl border border-green-200 bg-green-50 p-4">
+                  <p className="font-semibold text-green-800">
+                    Modo gratuito activo
+                  </p>
+                  <p className="mt-1 text-green-700">
+                    Los pagos estan desactivados temporalmente.
+                  </p>
+                </div>
+              )}
+
               {subscription ? (
                 <>
                   <p>
@@ -241,34 +254,46 @@ export default function ConfiguracionPage() {
                     )}
 
                   <div className="flex gap-3 pt-2 flex-wrap">
-                    <button
-                      onClick={() => setPlanesOpen(true)}
-                      className="px-4 py-2 rounded-lg bg-[#3fa10a] text-white text-sm"
-                    >
-                      Cambiar plan
-                    </button>
+                    {billingModeLoading ? (
+                      <span className="text-sm text-gray-500">
+                        Cargando modo de facturacion...
+                      </span>
+                    ) : !freeModeEnabled && (
+                      <button
+                        onClick={() => setPlanesOpen(true)}
+                        className="btn-primary"
+                      >
+                        Cambiar plan
+                      </button>
+                    )}
 
                     <button
                       onClick={() =>
                         router.push("/facturas")
                       }
-                      className="px-4 py-2 rounded-lg border text-sm"
+                      className="btn-secondary"
                     >
                       Ver facturas
                     </button>
-
-                   
-
-
                   </div>
                 </>
               ) : (
-                <button
-                  onClick={() => setPlanesOpen(true)}
-                  className="px-4 py-2 rounded-lg bg-[#3fa10a] text-white text-sm"
-                >
-                  Ver planes
-                </button>
+                billingModeLoading ? (
+                  <p className="text-sm text-gray-500">
+                    Cargando modo de facturacion...
+                  </p>
+                ) : freeModeEnabled ? (
+                  <p className="text-sm text-gray-600">
+                    No necesitas seleccionar un plan mientras el modo gratuito este activo.
+                  </p>
+                ) : (
+                  <button
+                    onClick={() => setPlanesOpen(true)}
+                    className="btn-primary"
+                  >
+                    Ver planes
+                  </button>
+                )
               )}
             </div>
           </section>
@@ -404,8 +429,8 @@ export default function ConfiguracionPage() {
       />
 
       {confirmOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <div className="bg-white rounded-2xl p-5 sm:p-6 w-full max-w-md shadow-xl">
             <h3 className="text-lg font-semibold text-gray-900 mb-2">
               Cambiar contraseña
             </h3>
@@ -414,10 +439,10 @@ export default function ConfiguracionPage() {
               Te enviaremos un correo con instrucciones para cambiar tu contraseña.
             </p>
 
-            <div className="flex justify-end gap-3">
+            <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 sm:gap-3">
               <button
                 onClick={() => setConfirmOpen(false)}
-                className="px-4 py-2 rounded-lg border text-sm"
+                className="btn-secondary"
                 disabled={sending}
               >
                 Cancelar
@@ -426,7 +451,7 @@ export default function ConfiguracionPage() {
               <button
                 onClick={handleSendReset}
                 disabled={sending}
-                className="px-4 py-2 rounded-lg bg-[#3fa10a] text-white text-sm"
+                className="btn-primary"
               >
                 {sending ? "Enviando..." : "Enviar correo"}
               </button>

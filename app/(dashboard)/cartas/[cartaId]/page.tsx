@@ -95,18 +95,18 @@ export default function SeccionesCartaPage() {
   }
 
   return (
-    <div className="py-6 md:p-6 space-y-8 bg-gray-50 min-h-screen mt-10">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
+    <div className="px-3 py-6 sm:px-4 md:p-6 space-y-8 bg-gray-50 min-h-screen mt-10">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-3 min-w-0">
           <button
             onClick={() => router.push("/cartas")}
-            className="p-2 rounded-full bg-white shadow hover:bg-gray-100"
+            className="p-2 rounded-full bg-white shadow hover:bg-gray-100 shrink-0"
           >
             <FiArrowLeft />
           </button>
 
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">
+          <div className="min-w-0">
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 truncate">
               {carta.nombre}
             </h1>
             <p className="text-sm text-gray-500">
@@ -118,7 +118,7 @@ export default function SeccionesCartaPage() {
         <div className="flex items-center gap-3">
           <button
             onClick={() => setOpenOrdenarModal(true)}
-            className="inline-flex items-center gap-2 px-3 md:px-4 py-2 rounded-xl bg-white shadow text-gray-700 hover:bg-gray-100"
+            className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 px-3 md:px-4 py-2 rounded-xl bg-white shadow text-gray-700 hover:bg-gray-100"
           >
             <FiMove />
             <span className="hidden md:inline">
@@ -131,7 +131,7 @@ export default function SeccionesCartaPage() {
               setSeccionParaEditar(null);
               setOpenModal(true);
             }}
-            className="inline-flex items-center gap-2 px-3 md:px-4 py-2 rounded-xl bg-[#72eb15]/20 text-[#3fa10a] font-semibold hover:bg-[#72eb15]/30"
+            className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 px-3 md:px-4 py-2 rounded-xl bg-[#72eb15]/20 text-[#3fa10a] font-semibold hover:bg-[#72eb15]/30"
           >
             <FiPlus />
             <span className="hidden md:inline">
@@ -144,9 +144,9 @@ export default function SeccionesCartaPage() {
       <div className="space-y-6">
         {secciones.map((seccion) => (
           <div key={seccion.id} className="rounded-2xl bg-white shadow-sm">
-            <div className="flex items-center justify-between px-6 py-4">
-              <div>
-                <p className="text-lg font-semibold text-gray-800">
+            <div className="flex items-center justify-between gap-3 px-4 py-4 sm:px-6">
+              <div className="min-w-0">
+                <p className="text-lg font-semibold text-gray-800 truncate">
                   {seccion.nombre}
                 </p>
                 <p className="text-xs text-gray-400">
@@ -154,7 +154,7 @@ export default function SeccionesCartaPage() {
                 </p>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 shrink-0">
                 <button
                   onClick={() => {
                     setSeccionParaEditar(seccion);

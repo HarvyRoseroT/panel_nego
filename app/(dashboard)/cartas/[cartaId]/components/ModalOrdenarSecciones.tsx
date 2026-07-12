@@ -104,27 +104,27 @@ export default function ModalOrdenarSecciones({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
-      <div className="w-full max-w-md rounded-2xl bg-white shadow-2xl">
-        <div className="flex items-center justify-between px-6 py-5">
-          <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gray-100 text-gray-600">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm p-4">
+      <div className="w-full max-w-md rounded-2xl bg-white shadow-2xl max-h-[90vh] overflow-y-auto">
+        <div className="flex items-center justify-between gap-3 px-4 sm:px-6 py-5">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gray-100 text-gray-600">
               <FiMove />
             </div>
-            <h2 className="text-lg font-semibold text-gray-800">
+            <h2 className="text-lg font-semibold text-gray-800 truncate">
               Ordenar secciones
             </h2>
           </div>
 
           <button
             onClick={onClose}
-            className="p-2 rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+            className="p-2 rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-600 shrink-0"
           >
             <FiX />
           </button>
         </div>
 
-        <div className="px-6 py-4 space-y-2">
+        <div className="px-4 sm:px-6 py-4 space-y-2">
           <DndContext
             sensors={sensors}
             collisionDetection={closestCenter}
@@ -141,16 +141,16 @@ export default function ModalOrdenarSecciones({
           </DndContext>
         </div>
 
-        <div className="flex justify-end gap-3 px-6 py-4 bg-gray-50 rounded-b-2xl">
+        <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 sm:gap-3 px-4 sm:px-6 py-4 bg-gray-50 rounded-b-2xl">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-sm rounded-lg bg-white text-gray-700 hover:bg-gray-100"
+            className="btn-secondary"
           >
             Cancelar
           </button>
           <button
             onClick={handleSave}
-            className="px-5 py-2.5 text-sm rounded-lg bg-[#3fa10a] text-white font-semibold hover:bg-[#369108]"
+            className="btn-primary"
           >
             Guardar orden
           </button>

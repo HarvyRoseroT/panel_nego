@@ -17,11 +17,11 @@ export default function ModalPreviewImagenProducto({
   if (!open || !producto) return null;
 
   return (
-    <div className="fixed inset-0 z-4000 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-      <div className="bg-white rounded-3xl max-w-lg w-full p-6 space-y-5 shadow-2xl">
-        <div className="flex justify-between items-center">
-          <div>
-            <h3 className="text-lg font-semibold text-gray-800">
+    <div className="fixed inset-0 z-4000 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+      <div className="bg-white rounded-3xl max-w-lg w-full p-5 sm:p-6 space-y-5 shadow-2xl max-h-[90vh] overflow-y-auto">
+        <div className="flex justify-between items-center gap-3">
+          <div className="min-w-0">
+            <h3 className="text-lg font-semibold text-gray-800 truncate">
               {producto.nombre}
             </h3>
             <p className="text-xs text-gray-400">

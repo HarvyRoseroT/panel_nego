@@ -29,12 +29,12 @@ export default function SoportePage() {
   ];
 
   return (
-    <main className="min-h-screen bg-gray-50 px-6 py-16">
-      <div className="max-w-4xl mx-auto space-y-16">
+    <main className="min-h-screen bg-gray-50 px-4 sm:px-6 py-10 sm:py-16">
+      <div className="max-w-4xl mx-auto space-y-10 sm:space-y-16">
 
         {/* HERO */}
         <section className="text-center space-y-4">
-          <h1 className="text-3xl font-bold text-gray-900">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
             Centro de Soporte
           </h1>
           <p className="text-gray-600 max-w-2xl mx-auto">
@@ -44,12 +44,12 @@ export default function SoportePage() {
         </section>
 
         {/* CONTACTO */}
-        <section className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 space-y-6">
+        <section className="bg-white rounded-2xl shadow-sm border border-gray-200 p-5 sm:p-8 space-y-6">
           <h2 className="text-xl font-semibold text-gray-800">
             Contacto directo
           </h2>
 
-          <div className="grid md:grid-cols-2 gap-6">
+          <div className="grid md:grid-cols-2 gap-4 sm:gap-6">
 
             <div className="bg-gray-50 p-6 rounded-xl border">
               <h3 className="font-medium text-gray-900 mb-2">

@@ -6,6 +6,7 @@ import { ThemeProvider, CssBaseline } from "@mui/material";
 import theme from "@/theme/theme";
 import { UserProvider } from "@/contexts/UserContext";
 import { StripeProvider } from "@/contexts/StripeContext";
+import { BillingModeProvider } from "@/contexts/BillingModeContext";
 
 const cache = createCache({
   key: "mui",
@@ -18,7 +19,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
       <ThemeProvider theme={theme}>
         <CssBaseline />
         <UserProvider>
-          <StripeProvider>{children}</StripeProvider>
+          <BillingModeProvider>
+            <StripeProvider>{children}</StripeProvider>
+          </BillingModeProvider>
         </UserProvider>
       </ThemeProvider>
     </CacheProvider>

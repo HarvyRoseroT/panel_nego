@@ -162,9 +162,9 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="pt-24 space-y-16">
+    <div className="px-4 pt-24 pb-8 space-y-10 sm:space-y-16 lg:px-0">
       <div>
-        <h1 className="text-3xl font-semibold text-gray-800">
+        <h1 className="text-2xl sm:text-3xl font-semibold text-gray-800">
           Estadisticas {establecimiento ? `de ${establecimiento.nombre}` : ""}
         </h1>
         <p className="mt-1 text-gray-500">
@@ -174,7 +174,7 @@ export default function DashboardPage() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
           title="Visitas totales"
           value={resumen.visitas}
@@ -198,7 +198,7 @@ export default function DashboardPage() {
         />
       </div>
 
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 sm:gap-6 sm:grid-cols-3">
         <StatCard title="Visitas hoy" value={resumen.visitasHoy} icon={FiEye} />
         <StatCard
           title="Visitas esta semana"
@@ -212,12 +212,12 @@ export default function DashboardPage() {
         />
       </div>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <div className="rounded-xl bg-white p-6 shadow-sm lg:col-span-2">
+      <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-3">
+        <div className="rounded-xl bg-white p-4 sm:p-6 shadow-sm lg:col-span-2">
           <h2 className="mb-4 text-lg font-semibold text-gray-800">
             Visitas por dia
           </h2>
-          <div className="h-72">
+          <div className="h-64 sm:h-72 -ml-4">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={visitas}>
                 <XAxis dataKey="fecha" />
@@ -234,11 +234,11 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        <div className="rounded-xl bg-white p-6 shadow-sm">
+        <div className="rounded-xl bg-white p-4 sm:p-6 shadow-sm">
           <h2 className="mb-4 text-lg font-semibold text-gray-800">
             Cartas mas vistas
           </h2>
-          <div className="h-72">
+          <div className="h-64 sm:h-72 -ml-4">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={cartasTop}>
                 <XAxis dataKey="nombre" />
@@ -251,7 +251,7 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-2">
         <TopProductosCard
           title="Productos mas vistos"
           emptyLabel="Aun no hay visitas a productos"

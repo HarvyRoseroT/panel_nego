@@ -67,8 +67,8 @@ export default function ModalCrearCarta({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-      <div className="bg-white w-full max-w-md rounded-2xl shadow-xl p-6 relative">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+      <div className="bg-white w-full max-w-md rounded-2xl shadow-xl p-5 sm:p-6 relative">
         <button
           onClick={onClose}
           className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
@@ -76,7 +76,7 @@ export default function ModalCrearCarta({
           <FiX className="text-xl" />
         </button>
 
-        <h2 className="text-xl font-semibold text-gray-800 mb-1">
+        <h2 className="text-xl font-semibold text-gray-800 mb-1 pr-8">
           {carta
             ? `Editar ${esTienda ? "categoría" : "carta"}`
             : `Nueva ${esTienda ? "categoría" : "carta"}`}
@@ -94,20 +94,21 @@ export default function ModalCrearCarta({
 
         <div className="space-y-4">
           <div>
-            <label className="text-sm font-medium text-gray-700">
+            <label className="label-ui">
               Nombre de la {esTienda ? "categoría" : "carta"}
             </label>
             <input
               value={nombre}
               onChange={(e) => setNombre(e.target.value)}
-              className="mt-1 w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#72eb15]/40"
+              autoFocus
+              className="input-ui"
             />
           </div>
 
-          <div className="flex justify-end gap-3 pt-2">
+          <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 sm:gap-3 pt-2">
             <button
               onClick={onClose}
-              className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-800"
+              className="btn-secondary"
             >
               Cancelar
             </button>
@@ -115,7 +116,7 @@ export default function ModalCrearCarta({
             <button
               onClick={handleSubmit}
               disabled={loading}
-              className="px-4 py-2 rounded-lg bg-[#72eb15]/20 text-[#3fa10a] font-semibold text-sm hover:bg-[#72eb15]/30 disabled:opacity-50"
+              className="btn-primary"
             >
               {loading
                 ? "Guardando…"

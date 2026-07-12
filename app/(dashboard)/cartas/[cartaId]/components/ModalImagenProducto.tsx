@@ -69,9 +69,9 @@ export default function ModalImagenProducto({
   };
 
   return (
-    <div className="fixed inset-0 z-5000 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-      <div className="bg-white rounded-3xl w-full max-w-lg shadow-2xl">
-        <div className="px-6 py-5 text-center">
+    <div className="fixed inset-0 z-5000 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+      <div className="bg-white rounded-3xl w-full max-w-lg shadow-2xl max-h-[90vh] overflow-y-auto">
+        <div className="px-4 sm:px-6 py-5 text-center">
           <h3 className="text-lg font-semibold text-gray-800">
             Imagen del producto
           </h3>
@@ -80,7 +80,7 @@ export default function ModalImagenProducto({
           </p>
         </div>
 
-        <div className="px-6 py-8 space-y-6">
+        <div className="px-4 sm:px-6 py-8 space-y-6">
           <div className="flex flex-col items-center gap-5">
             <div className="w-44 h-44 rounded-2xl bg-[#72eb15]/20 flex items-center justify-center overflow-hidden">
               {preview ? (
@@ -96,7 +96,7 @@ export default function ModalImagenProducto({
             </div>
 
             {!uploaded && (
-              <div className="flex items-center gap-3">
+              <div className="flex flex-wrap items-center justify-center gap-3">
                 <label className="px-5 py-2 rounded-full border border-[#72eb15] text-[#4fb30f] font-semibold cursor-pointer hover:bg-[#72eb15]/10 transition">
                   Seleccionar archivo
                   <input
@@ -143,7 +143,7 @@ export default function ModalImagenProducto({
           )}
         </div>
 
-        <div className="px-6 py-5 flex justify-center">
+        <div className="px-4 sm:px-6 py-5 flex justify-center">
           <button
             onClick={onClose}
             className="px-8 py-2 rounded-full bg-gray-100 text-gray-700 font-medium hover:bg-gray-200 transition"

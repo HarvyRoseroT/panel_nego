@@ -3,17 +3,39 @@
 import { useEffect, useState } from "react";
 import { FiX, FiCheck } from "react-icons/fi";
 import {
+  Plan,
+  Subscription,
   getPlans,
   getMySubscription,
   getAcceptanceToken,
   getCheckoutData
 } from "@/services/wompiService";
 import { useUser } from "@/contexts/UserContext";
+import { useBillingMode } from "@/contexts/BillingModeContext";
+import { isFreeModeBillingConflict } from "@/services/billingModeService";
 
 declare global {
   interface Window {
-    WidgetCheckout: any;
+    WidgetCheckout?: new (options: WompiCheckoutOptions) => WompiCheckout;
   }
+}
+
+interface WompiCheckoutOptions {
+  publicKey: string | undefined;
+  currency: string;
+  amountInCents: number;
+  reference: string;
+  signature: {
+    integrity: string;
+  };
+}
+
+interface WompiCheckoutResult {
+  event?: string;
+}
+
+interface WompiCheckout {
+  open: (callback: (result: WompiCheckoutResult) => void) => void;
 }
 
 const formatCOP = (amount: number) =>
@@ -31,15 +53,18 @@ export default function ModalPlanes({
   onClose: () => void;
 }) {
   const { token, refreshUser } = useUser();
+  const { billingMode, refreshBillingMode } = useBillingMode();
 
-  const [planes, setPlanes] = useState<any[]>([]);
-  const [subscription, setSubscription] = useState<any | null>(null);
+  const [planes, setPlanes] = useState<Plan[]>([]);
+  const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [acceptanceToken, setAcceptanceToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [widgetReady, setWidgetReady] = useState(false);
   const [processing, setProcessing] = useState(false);
+  const [billingMessage, setBillingMessage] = useState<string | null>(null);
 
   const hasActivePlan = subscription?.status === "ACTIVE";
+  const freeModeEnabled = billingMode?.free_mode_enabled === true;
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -55,27 +80,61 @@ export default function ModalPlanes({
   useEffect(() => {
     if (!open || !token) return;
 
-    setLoading(true);
+    let mounted = true;
 
-    Promise.all([
-      getPlans(token),
-      getMySubscription(token),
-      getAcceptanceToken(token),
-    ])
-      .then(([plans, sub, acceptance]) => {
+    setLoading(true);
+    setBillingMessage(null);
+    setAcceptanceToken(null);
+
+    async function loadBillingData() {
+      try {
+        const currentMode = billingMode ?? (await refreshBillingMode());
+        const [plans, sub] = await Promise.all([
+          getPlans(token as string),
+          getMySubscription(token as string),
+        ]);
+
+        if (!mounted) return;
+
         setPlanes(plans);
         setSubscription(sub);
-        setAcceptanceToken(acceptance.acceptance_token);
-      })
-      .finally(() => setLoading(false));
-  }, [open, token]);
 
-  const handleSubscribe = async (plan: any) => {
+        if (currentMode?.free_mode_enabled) {
+          setBillingMessage("Los pagos estan desactivados temporalmente.");
+          return;
+        }
+
+        const acceptance = await getAcceptanceToken(token as string);
+        if (mounted) setAcceptanceToken(acceptance.acceptance_token);
+      } catch (error) {
+        if (isFreeModeBillingConflict(error)) {
+          await refreshBillingMode();
+          if (mounted) {
+            setBillingMessage("Los pagos estan desactivados temporalmente.");
+          }
+          return;
+        }
+
+        console.error("Billing data error:", error);
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    }
+
+    loadBillingData();
+
+    return () => {
+      mounted = false;
+    };
+  }, [billingMode, open, refreshBillingMode, token]);
+
+  const handleSubscribe = async (plan: Plan) => {
     if (!widgetReady || !window.WidgetCheckout || !token) return;
-    if (processing || hasActivePlan) return;
+    if (processing || hasActivePlan || freeModeEnabled) return;
 
     try {
       setProcessing(true);
+      setBillingMessage(null);
 
       const checkoutData = await getCheckoutData(plan.id, token);
 
@@ -89,7 +148,7 @@ export default function ModalPlanes({
         },
       });
 
-      checkout.open((result: any) => {
+      checkout.open((result) => {
         if (result?.event === "checkout.payment.success") {
           setTimeout(async () => {
             await refreshUser();
@@ -99,6 +158,12 @@ export default function ModalPlanes({
       });
 
     } catch (error) {
+      if (isFreeModeBillingConflict(error)) {
+        await refreshBillingMode();
+        setBillingMessage("Los pagos estan desactivados temporalmente.");
+        return;
+      }
+
       console.error("Checkout error:", error);
     } finally {
       setProcessing(false);
@@ -108,8 +173,8 @@ export default function ModalPlanes({
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-      <div className="bg-white w-full max-w-xl rounded-2xl shadow-2xl p-6 relative">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+      <div className="bg-white w-full max-w-xl rounded-2xl shadow-2xl p-5 sm:p-6 relative max-h-[90vh] overflow-y-auto">
         <button
           onClick={onClose}
           className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
@@ -117,8 +182,8 @@ export default function ModalPlanes({
           <FiX className="text-xl" />
         </button>
 
-        <div className="mb-6">
-          <h2 className="text-2xl font-bold text-gray-800">
+        <div className="mb-6 pr-8">
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-800">
             Planes disponibles
           </h2>
         </div>
@@ -130,6 +195,23 @@ export default function ModalPlanes({
               cuando sea necesario realizar un nuevo pago. Si deseas actualizar
               tu plan, debes esperar a que tu plan actual expire.
             </p>
+          </div>
+        )}
+
+        {freeModeEnabled && (
+          <div className="mb-6 p-4 rounded-xl bg-green-50 border border-green-200">
+            <p className="text-sm font-semibold text-green-800">
+              Modo gratuito activo
+            </p>
+            <p className="mt-1 text-sm text-green-700">
+              Los pagos estan desactivados temporalmente.
+            </p>
+          </div>
+        )}
+
+        {billingMessage && !freeModeEnabled && (
+          <div className="mb-6 p-4 rounded-xl bg-yellow-50 border border-yellow-200">
+            <p className="text-sm text-yellow-800">{billingMessage}</p>
           </div>
         )}
 
@@ -145,7 +227,7 @@ export default function ModalPlanes({
               return (
                 <div
                   key={plan.id}
-                  className={`rounded-xl p-5 flex items-center justify-between border transition
+                  className={`rounded-xl p-4 sm:p-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border transition
                     ${
                       isCurrent
                         ? "bg-green-50 border-green-300"
@@ -153,7 +235,7 @@ export default function ModalPlanes({
                     }`}
                 >
                   <div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                       <p
                         className={`text-lg font-semibold ${
                           isCurrent ? "text-green-700" : "text-gray-800"
@@ -174,7 +256,7 @@ export default function ModalPlanes({
                     </p>
                   </div>
 
-                  <div className="text-right">
+                  <div className="text-left sm:text-right">
                     <p
                       className={`text-2xl font-bold ${
                         isCurrent ? "text-green-700" : "text-[#3fa10a]"
@@ -183,25 +265,31 @@ export default function ModalPlanes({
                       {formatCOP(plan.price / 100)}
                     </p>
 
-                    <button
-                      disabled={
-                        !widgetReady ||
-                        !acceptanceToken ||
-                        hasActivePlan ||
-                        processing
-                      }
-                      onClick={() => handleSubscribe(plan)}
-                      className="mt-3 inline-flex items-center gap-2 px-4 py-2 rounded-lg font-semibold text-sm bg-[#72eb15]/15 text-[#3fa10a] disabled:opacity-50"
-                    >
-                      <FiCheck />
-                      {isCurrent
-                        ? "Plan activo"
-                        : hasActivePlan
-                        ? "Plan activo"
-                        : processing
-                        ? "Procesando..."
-                        : "Pagar"}
-                    </button>
+                    {freeModeEnabled ? (
+                      <span className="mt-3 inline-flex items-center gap-2 rounded-lg bg-green-50 px-4 py-2 text-sm font-semibold text-green-700">
+                        Modo gratuito activo
+                      </span>
+                    ) : (
+                      <button
+                        disabled={
+                          !widgetReady ||
+                          !acceptanceToken ||
+                          hasActivePlan ||
+                          processing
+                        }
+                        onClick={() => handleSubscribe(plan)}
+                        className="mt-3 inline-flex items-center gap-2 px-4 py-2 rounded-lg font-semibold text-sm bg-[#72eb15]/15 text-[#3fa10a] disabled:opacity-50"
+                      >
+                        <FiCheck />
+                        {isCurrent
+                          ? "Plan activo"
+                          : hasActivePlan
+                          ? "Plan activo"
+                          : processing
+                          ? "Procesando..."
+                          : "Pagar"}
+                      </button>
+                    )}
                   </div>
                 </div>
               );

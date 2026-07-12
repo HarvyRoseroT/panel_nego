@@ -164,6 +164,7 @@ export default function PartnersPage() {
       )}
 
       <div className="bg-neutral-900 rounded-xl overflow-hidden border border-neutral-800">
+        <div className="overflow-x-auto">
         <table className="w-full text-left">
           <thead className="bg-neutral-800 text-neutral-400 text-sm">
             <tr>
@@ -250,11 +251,12 @@ export default function PartnersPage() {
             )}
           </tbody>
         </table>
+        </div>
       </div>
 
       <Dialog open={isOpen} onClose={() => setIsOpen(false)} className="relative z-50">
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center">
-          <div className="bg-neutral-900 p-8 rounded-xl w-105 border border-neutral-800">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4">
+          <div className="bg-neutral-900 p-6 sm:p-8 rounded-xl w-full max-w-md border border-neutral-800">
             <h2 className="text-xl font-bold mb-6">Crear Partner</h2>
 
             <div className="space-y-4">
@@ -310,8 +312,8 @@ export default function PartnersPage() {
       </Dialog>
 
       <Dialog open={isPayOpen} onClose={() => setIsPayOpen(false)} className="relative z-50">
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center">
-          <div className="bg-neutral-900 p-8 rounded-xl w-105 border border-neutral-800">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4">
+          <div className="bg-neutral-900 p-6 sm:p-8 rounded-xl w-full max-w-md border border-neutral-800">
             <h2 className="text-xl font-bold mb-4">Pagar saldo partner</h2>
 
             <p className="text-neutral-400 mb-6">
@@ -342,8 +344,8 @@ export default function PartnersPage() {
       </Dialog>
 
       <Dialog open={isDeleteOpen} onClose={() => setIsDeleteOpen(false)} className="relative z-50">
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center">
-          <div className="bg-neutral-900 p-8 rounded-xl w-100 border border-neutral-800">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4">
+          <div className="bg-neutral-900 p-6 sm:p-8 rounded-xl w-full max-w-sm border border-neutral-800">
             <h2 className="text-lg font-bold mb-4 text-red-400">
               Confirmar eliminación
             </h2>

@@ -3,11 +3,14 @@
 import { useEffect, useState } from "react";
 import { useUser } from "@/contexts/UserContext";
 import { getMyInvoices, Invoice } from "@/services/wompiService";
+import { useBillingMode } from "@/contexts/BillingModeContext";
 
 export default function FacturasPage() {
   const { token } = useUser();
+  const { billingMode } = useBillingMode();
   const [loading, setLoading] = useState(true);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const freeModeEnabled = billingMode?.free_mode_enabled === true;
 
   useEffect(() => {
     if (!token) return;
@@ -27,6 +30,17 @@ export default function FacturasPage() {
           Historial de pagos realizados
         </p>
       </header>
+
+      {freeModeEnabled && (
+        <div className="mb-6 rounded-xl border border-green-200 bg-green-50 p-4">
+          <p className="text-sm font-semibold text-green-800">
+            Modo gratuito activo
+          </p>
+          <p className="mt-1 text-sm text-green-700">
+            Los pagos estan desactivados temporalmente.
+          </p>
+        </div>
+      )}
 
       <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
         {loading ? (

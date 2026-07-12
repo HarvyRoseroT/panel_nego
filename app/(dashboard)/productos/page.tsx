@@ -138,7 +138,8 @@ export default function ProductosPage() {
       </div>
 
       <div className="bg-white rounded-2xl shadow-md overflow-hidden">
-        <table className="w-full text-sm">
+        <div className="table-wrap">
+        <table className="w-full text-sm min-w-140">
           <thead className="bg-gray-50">
             <tr>
               <th className="px-6 py-4 text-left font-medium text-gray-600">
@@ -211,6 +212,7 @@ export default function ProductosPage() {
             ))}
           </tbody>
         </table>
+        </div>
       </div>
     </div>
   );

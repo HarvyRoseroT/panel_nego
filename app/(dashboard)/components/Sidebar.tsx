@@ -8,8 +8,6 @@ import {
   FiHome,
   FiBookOpen,
   FiBox,
-  FiClipboard,
-  FiMap,
   FiSettings,
   FiZap,
   FiFileText,
@@ -61,20 +59,6 @@ export default function Sidebar({
       icon: FiBookOpen
     },
     { label: "Productos", href: "/productos", icon: FiBox },
-    // ...(tipo !== "clothing_store" && tipo
-    //   ? [
-    //       {
-    //         label: "Plano",
-    //         href: "/plano-restaurante",
-    //         icon: FiMap,
-    //       },
-    //       {
-    //         label: "Pedidos",
-    //         href: "/pedidos-mesas",
-    //         icon: FiClipboard,
-    //       },
-    //     ]
-    //   : []),
     { label: "QR", href: "/qr", icon: FiShare2 },
     { label: "Facturas", href: "/facturas", icon: FiFileText },
     { label: "Soporte", href: "/soporte", icon: FiHelpCircle },
