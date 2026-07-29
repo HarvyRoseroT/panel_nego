@@ -146,9 +146,7 @@ export default function Header({
           {freeModeEnabled ? (
             <span className="flex items-center justify-center gap-2.5 rounded-xl bg-green-50 px-3 py-2.5 text-base font-semibold text-green-700 md:px-5">
               <FiCheckCircle className="text-lg shrink-0" />
-              <span className="hidden md:inline leading-none whitespace-nowrap">
-                Modo gratuito activo
-              </span>
+              
             </span>
           ) : subscription && planUI && (
             <button

@@ -38,6 +38,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   const navLinks = [
     { href: "/admin", label: "Dashboard" },
+    { href: "/admin/establecimientos", label: "Negocios" },
     { href: "/admin/partners", label: "Partners" },
     { href: "/admin/commissions", label: "Comisiones" },
     { href: "/admin/payments", label: "Pagos" },
