@@ -52,6 +52,7 @@ export interface SuperadminEstablecimiento {
   logo_url: string | null;
   imagen_ubicacion_url: string | null;
   activo: boolean;
+  verificado?: boolean;
   domicilio_activo: boolean;
   tipo_establecimiento: SuperadminEstablecimientoTipo | null;
   createdAt: string;
@@ -98,6 +99,18 @@ export async function getSuperadminEstablecimientoById(
 ): Promise<SuperadminEstablecimiento> {
   const { data } = await api.get<SuperadminEstablecimiento>(
     `/api/superadmin/establecimientos/${id}`
+  );
+
+  return data;
+}
+
+export async function updateSuperadminEstablecimientoVerificado(
+  id: number,
+  verificado: boolean
+): Promise<SuperadminEstablecimiento> {
+  const { data } = await api.patch<SuperadminEstablecimiento>(
+    `/api/superadmin/establecimientos/${id}/verificado`,
+    { verificado }
   );
 
   return data;

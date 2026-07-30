@@ -7,6 +7,7 @@ import {
   SuperadminEstablecimiento,
   SuperadminEstablecimientoTipo,
   SuperadminEstablecimientosPagination,
+  updateSuperadminEstablecimientoVerificado,
 } from "@/services/superadminEstablecimientoService";
 
 const ESTABLECIMIENTO_TIPOS: Array<{
@@ -40,6 +41,9 @@ export default function AdminEstablecimientosPage() {
   const [activo, setActivo] = useState<ActivoFilter>("");
   const [tipo, setTipo] = useState<SuperadminEstablecimientoTipo | "">("");
   const [loading, setLoading] = useState(true);
+  const [updatingVerifiedId, setUpdatingVerifiedId] = useState<number | null>(
+    null
+  );
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -96,6 +100,49 @@ export default function AdminEstablecimientosPage() {
   function handleTipoChange(value: SuperadminEstablecimientoTipo | "") {
     setPage(1);
     setTipo(value);
+  }
+
+  async function handleVerificadoToggle(
+    establecimiento: SuperadminEstablecimiento
+  ) {
+    if (updatingVerifiedId) return;
+
+    const nextVerificado = !Boolean(establecimiento.verificado);
+
+    try {
+      setUpdatingVerifiedId(establecimiento.id);
+      setError(null);
+
+      setEstablecimientos((current) =>
+        current.map((item) =>
+          item.id === establecimiento.id
+            ? { ...item, verificado: nextVerificado }
+            : item
+        )
+      );
+
+      const updated = await updateSuperadminEstablecimientoVerificado(
+        establecimiento.id,
+        nextVerificado
+      );
+
+      setEstablecimientos((current) =>
+        current.map((item) => (item.id === updated.id ? updated : item))
+      );
+    } catch (error) {
+      setEstablecimientos((current) =>
+        current.map((item) =>
+          item.id === establecimiento.id
+            ? { ...item, verificado: establecimiento.verificado }
+            : item
+        )
+      );
+      setError(
+        getErrorMessage(error, "No se pudo actualizar la verificacion")
+      );
+    } finally {
+      setUpdatingVerifiedId(null);
+    }
   }
 
   return (
@@ -177,13 +224,14 @@ export default function AdminEstablecimientosPage() {
 
       <div className="overflow-hidden rounded-xl border border-neutral-800 bg-neutral-900">
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[1180px] text-left text-sm">
+          <table className="w-full min-w-[1280px] text-left text-sm">
             <thead className="border-b border-neutral-800 bg-neutral-800 text-neutral-400">
               <tr>
                 <th className="p-4">Negocio</th>
                 <th>Ciudad/Pais</th>
                 <th>Tipo</th>
                 <th>Estado activo</th>
+                <th>Verificado</th>
                 <th>Dueno</th>
                 <th>Email</th>
                 <th>Estado suscripcion</th>
@@ -195,13 +243,13 @@ export default function AdminEstablecimientosPage() {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={9} className="p-8 text-center text-neutral-500">
+                  <td colSpan={10} className="p-8 text-center text-neutral-500">
                     Cargando negocios...
                   </td>
                 </tr>
               ) : establecimientos.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="p-8 text-center text-neutral-500">
+                  <td colSpan={10} className="p-8 text-center text-neutral-500">
                     No hay negocios registrados con estos filtros.
                   </td>
                 </tr>
@@ -230,6 +278,14 @@ export default function AdminEstablecimientosPage() {
 
                     <td>
                       <ActiveBadge active={establecimiento.activo} />
+                    </td>
+
+                    <td>
+                      <ToggleButton
+                        checked={Boolean(establecimiento.verificado)}
+                        disabled={updatingVerifiedId === establecimiento.id}
+                        onClick={() => handleVerificadoToggle(establecimiento)}
+                      />
                     </td>
 
                     <td className="text-neutral-300">
@@ -291,6 +347,35 @@ export default function AdminEstablecimientosPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+function ToggleButton({
+  checked,
+  disabled,
+  onClick,
+}: {
+  checked: boolean;
+  disabled: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      aria-pressed={checked}
+      className={`flex h-6 w-12 items-center rounded-full p-1 transition disabled:cursor-not-allowed disabled:opacity-60 ${
+        checked ? "bg-green-500" : "bg-neutral-600"
+      }`}
+      title={checked ? "Deshabilitar verificacion" : "Habilitar verificacion"}
+    >
+      <span
+        className={`h-4 w-4 rounded-full bg-white shadow-md transition ${
+          checked ? "translate-x-6" : "translate-x-0"
+        }`}
+      />
+    </button>
   );
 }
 
